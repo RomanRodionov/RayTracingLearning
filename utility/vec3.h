@@ -17,44 +17,44 @@ class vec3
         vec3 operator-() const {return vec3(-data[0], -data[1], -data[2]);}
         double& operator[](int idx) {return data[idx];}
         double operator[](int idx) const {return data[idx];}
-        vec3 operator+(vec3& vec) const
+        vec3 operator+(const vec3& vec) const
         {
             return vec3(data[0] + vec.data[0], data[1] + vec.data[1], data[2] + vec.data[2]);
         }
-        vec3 operator-(vec3& vec) const
+        vec3 operator-(const vec3& vec) const
         {
             return vec3(data[0] - vec.data[0], data[1] - vec.data[1], data[2] - vec.data[2]);
         }
-        vec3 operator*(vec3& vec) const
+        vec3 operator*(const vec3& vec) const
         {
             return vec3(data[0] * vec.data[0], data[1] * vec.data[1], data[2] * vec.data[2]);
         }
-        vec3 operator/(vec3& vec) const
+        vec3 operator/(const vec3& vec) const
         {
             return vec3(data[0] / vec.data[0], data[1] / vec.data[1], data[2] / vec.data[2]);
         }
-        vec3& operator+=(vec3& vec)
+        vec3& operator+=(const vec3& vec)
         {
             data[0] += vec.data[0];
             data[1] += vec.data[1];
             data[2] += vec.data[2];
             return *this;
         }
-        vec3& operator-=(vec3& vec)
+        vec3& operator-=(const vec3& vec)
         {
             data[0] -= vec.data[0];
             data[1] -= vec.data[1];
             data[2] -= vec.data[2];
             return *this;
         }
-        vec3& operator*=(vec3& vec)
+        vec3& operator*=(const vec3& vec)
         {
             data[0] *= vec.data[0];
             data[1] *= vec.data[1];
             data[2] *= vec.data[2];
             return *this;
         }
-        vec3& operator/=(vec3& vec)
+        vec3& operator/=(const vec3& vec)
         {
             data[0] /= vec.data[0];
             data[1] /= vec.data[1];

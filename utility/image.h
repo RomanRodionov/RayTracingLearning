@@ -17,7 +17,7 @@ class Image
         int width, height;
         std::vector<std::array<uchar, CHANNELS>> data;
     public:
-        Image(int h, int w) : height{h}, width{w}
+        Image(int h, int w) : height(h), width(w)
         {
             data = std::vector<std::array<uchar, CHANNELS>>(width * height);
         }
