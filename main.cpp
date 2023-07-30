@@ -1,40 +1,12 @@
-#include <iostream>
-#include <vector>
-#include <array>
-#include <string>
-
-#include "utility/vec3.h"
-#include "utility/color.h"
-#include "utility/image.h"
-#include "utility/ray.h"
-
-#define IMG_WIDTH 960
-#define IMG_HEIGHT 540
-
-double hit_sphere(const point3& center, double radius, const Ray& ray)
-{
-    vec3 oc = ray.origin() - center;
-    double a = ray.direction().square();
-    double hb = dot(oc, ray.direction());
-    double c = oc.square() - radius * radius;
-    double discr = hb * hb - a * c;
-    if (discr < 0)
-    {
-        return -1.0;
-    }
-    else
-    {
-        return (-hb - sqrt(discr)) / a;
-    }
-}
+#include "main.h"
 
 color ray_color(const Ray& ray)
 {
-    point3 center = point3(0, 0,-2);
-    double t = hit_sphere(center, 1.0, ray);
-    if (t >= 0)
+    Sphere obj(point3(0, 0, -2.0), 1.0);
+    hit_record rec;
+    if (obj.hit(ray, 0.0, std::numeric_limits<double>::max(), rec))
     {
-        vec3 n = unit_vector(ray.at(t) - center);
+        vec3 n = rec.normal;
         return color(n[0] + 1.0, n[1] + 1.0, n[2] + 1.0) * 0.5;
     }
     vec3 unit_dir = unit_vector(ray.direction());
