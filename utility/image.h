@@ -9,7 +9,9 @@
 #include <vector>
 #include <array>
 #include <string>
+
 #include "color.h"
+#include "common.h"
 
 class Image
 {
@@ -25,13 +27,14 @@ class Image
         {
             return stbi_write_png(filename.c_str(), width, height, CHANNELS, data.data(), width * CHANNELS);
         }
-        void draw_pixel(int row, int col, color color)
+        void draw_pixel(int row, int col, color color, int samples_per_pixel)
         {
             assert(row >= 0 && row < height);
             assert(col >= 0 && col < width);
-            data[width * row + col] = { static_cast<uchar> (MAX_COLOR * color[0]),
-                                        static_cast<uchar> (MAX_COLOR * color[1]),
-                                        static_cast<uchar> (MAX_COLOR * color[2])};
+            color /= samples_per_pixel;
+            data[width * row + col] = { static_cast<uchar> (MAX_COLOR * clamp(color[0], 0.0, 1.0)),
+                                        static_cast<uchar> (MAX_COLOR * clamp(color[1], 0.0, 1.0)),
+                                        static_cast<uchar> (MAX_COLOR * clamp(color[2], 0.0, 1.0))};
         }
 };
 

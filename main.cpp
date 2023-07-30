@@ -22,27 +22,32 @@ int main(int, char**){
     scene.add(make_shared<Sphere>(point3(0, 0, -2.0), 1.0));
     scene.add(make_shared<Sphere>(point3(0, -101.0, -2), 100.0));
 
-    double viewport_height = 2.0;
-    double viewport_width = aspect_ratio * viewport_height;
-    double focal_length = 1.0;
-
-    point3 origin(0, 0, 0);
-    vec3 horizontal(viewport_width, 0, 0);
-    vec3 vertical(0, viewport_height, 0);
-    point3 ll_corner = origin - horizontal/2 - vertical/2 - vec3(0, 0, focal_length);
-
-
+    Camera camera(FOV, aspect_ratio);
+    
+    std::cout << "Rendering in progress: 000%";
+    int pixel_count = 0, image_size = IMG_HEIGHT * IMG_WIDTH;
     for (int i = 0; i < IMG_HEIGHT; ++i)
     {
         for (int j = 0; j < IMG_WIDTH; ++j)
         {
-            double v = (double) i / (IMG_HEIGHT - 1);
-            double u = (double) j / (IMG_WIDTH - 1);
-            Ray ray(origin, ll_corner + horizontal * u + vertical * v - origin);
-            color color = ray_color(ray, scene);
-            image.draw_pixel(IMG_HEIGHT - i - 1, j, color);
+            color pixel_color(0, 0, 0);
+            for (int s = 0; s < SAMPLES_PER_PIXEL; ++s)
+            {
+                double v = (i + rand_double()) / (IMG_HEIGHT - 1);
+                double u = (j + rand_double()) / (IMG_WIDTH - 1);
+                Ray ray = camera.get_ray(u, v);
+                pixel_color += ray_color(ray, scene);
+            }
+            image.draw_pixel(IMG_HEIGHT - i - 1, j, pixel_color, SAMPLES_PER_PIXEL);
+            
+            pixel_count++;
+            double progress = (int)((double) pixel_count / image_size * 100.0);
+            std::ostringstream ss;
+            ss << std::setw(3) << std::setfill('0') << progress;
+            std::string progress_str = ss.str();
+            std::cout << "\b\b\b\b" << progress_str << "%";
         }
     }
     image.save_to_png(filename);
-    std::cout << "File " << filename << " has been saved" << std::endl;;
+    std::cout << std::endl << "File " << filename << " has been saved" << std::endl;;
 }
