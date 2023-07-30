@@ -1,13 +1,11 @@
 #include "main.h"
 
-color ray_color(const Ray& ray)
+color ray_color(const Ray& ray, const Object& obj)
 {
-    Sphere obj(point3(0, 0, -2.0), 1.0);
     hit_record rec;
     if (obj.hit(ray, 0.0, std::numeric_limits<double>::max(), rec))
     {
-        vec3 n = rec.normal;
-        return color(n[0] + 1.0, n[1] + 1.0, n[2] + 1.0) * 0.5;
+        return (rec.normal + vec3(1.0, 1.0, 1.0)) * 0.5;
     }
     vec3 unit_dir = unit_vector(ray.direction());
     double k = (unit_dir.y() + 1.0) * 0.5;
@@ -19,6 +17,10 @@ int main(int, char**){
     Image image(IMG_HEIGHT, IMG_WIDTH);
 
     const double aspect_ratio = (double) IMG_WIDTH / (double) IMG_HEIGHT;
+
+    ObjectsList scene;
+    scene.add(make_shared<Sphere>(point3(0, 0, -2.0), 1.0));
+    scene.add(make_shared<Sphere>(point3(0, -101.0, -2), 100.0));
 
     double viewport_height = 2.0;
     double viewport_width = aspect_ratio * viewport_height;
@@ -37,7 +39,8 @@ int main(int, char**){
             double v = (double) i / (IMG_HEIGHT - 1);
             double u = (double) j / (IMG_WIDTH - 1);
             Ray ray(origin, ll_corner + horizontal * u + vertical * v - origin);
-            image.draw_pixel(IMG_HEIGHT - i - 1, j, ray_color(ray));
+            color color = ray_color(ray, scene);
+            image.draw_pixel(IMG_HEIGHT - i - 1, j, color);
         }
     }
     image.save_to_png(filename);
