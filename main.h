@@ -19,11 +19,13 @@
 #include "utility/camera.h"
 #include "utility/common.h"
 
-#define IMG_WIDTH 960
-#define IMG_HEIGHT 540
+#define IMG_WIDTH 640
+#define IMG_HEIGHT 360
 #define SAMPLES_PER_PIXEL 50
 #define FOV 120
+#define MAX_DEPTH 50
+#define EPS 0.0000001
 
-color ray_color(const Ray& ray);
+color ray_color(const Ray& ray, const Object& obj, int depth);
 
 #endif

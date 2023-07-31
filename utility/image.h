@@ -32,9 +32,13 @@ class Image
             assert(row >= 0 && row < height);
             assert(col >= 0 && col < width);
             color /= samples_per_pixel;
-            data[width * row + col] = { static_cast<uchar> (MAX_COLOR * clamp(color[0], 0.0, 1.0)),
-                                        static_cast<uchar> (MAX_COLOR * clamp(color[1], 0.0, 1.0)),
-                                        static_cast<uchar> (MAX_COLOR * clamp(color[2], 0.0, 1.0))};
+            //gamma=2
+            double r = sqrt(color[0]);
+            double g = sqrt(color[1]);
+            double b = sqrt(color[2]);
+            data[width * row + col] = { static_cast<uchar> (MAX_COLOR * clamp(r, 0.0, 1.0)),
+                                        static_cast<uchar> (MAX_COLOR * clamp(g, 0.0, 1.0)),
+                                        static_cast<uchar> (MAX_COLOR * clamp(b, 0.0, 1.0))};
         }
 };
 

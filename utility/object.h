@@ -3,6 +3,8 @@
 
 #include "ray.h"
 
+#include <iostream>
+
 struct hit_record
 {
     point3 p;

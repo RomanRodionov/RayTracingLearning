@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "common.h"
+
 class vec3
 {
     private:
@@ -91,10 +93,15 @@ class vec3
         {
             return sqrt(square());
         }
+        inline static vec3 random()
+        {
+            return vec3(rand_double(), rand_double(), rand_double());
+        }
+        inline static vec3 random(double min, double max)
+        {
+            return vec3(rand_double(min, max), rand_double(min, max), rand_double(min, max));
+        }
 };
-
-using point3 = vec3;
-using color = vec3;
 
 inline std::ostream& operator<<(std::ostream &out, const vec3 &vec)
 {
@@ -117,5 +124,22 @@ inline vec3 unit_vector(vec3 vec)
 {
     return vec / vec.length();
 }
+
+vec3 random_in_unit_sphere()
+{
+    while (true)
+    {
+        vec3 point = vec3::random(-1, 1);
+        if (point.square() < 1) {return point;}
+    }
+}
+
+vec3 random_unit_vector()
+{
+    return unit_vector(random_in_unit_sphere());
+}
+
+using point3 = vec3;
+using color = vec3;
 
 #endif

@@ -1,11 +1,15 @@
 #include "main.h"
 
-color ray_color(const Ray& ray, const Object& obj)
+color ray_color(const Ray& ray, const Object& obj, int depth)
 {
     hit_record rec;
-    if (obj.hit(ray, 0.0, std::numeric_limits<double>::max(), rec))
+
+    if (depth <= 0) {return color(0.0, 0.0, 0.0);}
+
+    if (obj.hit(ray, EPS, INF, rec))
     {
-        return (rec.normal + vec3(1.0, 1.0, 1.0)) * 0.5;
+        point3 target = rec.p + rec.normal + random_unit_vector();
+        return ray_color(Ray(rec.p, target - rec.p), obj, depth - 1) * 0.5;
     }
     vec3 unit_dir = unit_vector(ray.direction());
     double k = (unit_dir.y() + 1.0) * 0.5;
@@ -13,6 +17,8 @@ color ray_color(const Ray& ray, const Object& obj)
 }
 
 int main(int, char**){
+    std::srand(100);
+
     std::string filename = "output.png";
     Image image(IMG_HEIGHT, IMG_WIDTH);
 
@@ -36,7 +42,7 @@ int main(int, char**){
                 double v = (i + rand_double()) / (IMG_HEIGHT - 1);
                 double u = (j + rand_double()) / (IMG_WIDTH - 1);
                 Ray ray = camera.get_ray(u, v);
-                pixel_color += ray_color(ray, scene);
+                pixel_color += ray_color(ray, scene, MAX_DEPTH);
             }
             image.draw_pixel(IMG_HEIGHT - i - 1, j, pixel_color, SAMPLES_PER_PIXEL);
             

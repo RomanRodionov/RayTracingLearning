@@ -25,10 +25,10 @@ bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_record& rec) co
     double sqrtd = sqrt(discr);
     double root = (-hb - sqrtd) / a;
     if (root > t_max) {return false;}
-    if (root < t_min)
+    if (root <= t_min)
     {
         root = (-hb + sqrtd) / a;
-        if (root < t_min || root > t_max) {return false;}
+        if (root <= t_min || root > t_max) {return false;}
     }
 
     rec.t = root;
