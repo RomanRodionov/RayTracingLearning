@@ -2,8 +2,11 @@
 #define OBJECT_H
 
 #include "ray.h"
+#include "vec3.h"
 
 #include <iostream>
+
+class Material;
 
 struct hit_record
 {
@@ -11,6 +14,7 @@ struct hit_record
     vec3 normal;
     double t;
     bool front_face;
+    shared_ptr<Material> material;
     inline void set_face_normal(const Ray& ray, const vec3& outward_normal)
     {
         front_face = dot(ray.direction(), outward_normal) < 0;

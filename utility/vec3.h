@@ -101,6 +101,11 @@ class vec3
         {
             return vec3(rand_double(min, max), rand_double(min, max), rand_double(min, max));
         }
+        bool near_zero() const
+        {
+            const double s = 1e-8;
+            return (fabs(data[0]) < s) && (fabs(data[1]) < s) && (fabs(data[2]) < s);
+        }
 };
 
 inline std::ostream& operator<<(std::ostream &out, const vec3 &vec)
@@ -125,6 +130,11 @@ inline vec3 unit_vector(vec3 vec)
     return vec / vec.length();
 }
 
+vec3 reflect(const vec3& v, const vec3& n)
+{
+    return v - n * 2 * dot(v, n);
+}
+
 vec3 random_in_unit_sphere()
 {
     while (true)
@@ -137,6 +147,13 @@ vec3 random_in_unit_sphere()
 vec3 random_unit_vector()
 {
     return unit_vector(random_in_unit_sphere());
+}
+
+vec3 random_in_hemisphere(const vec3& normal)
+{
+    vec3 in_sphere = random_in_unit_sphere();
+    if (dot(in_sphere, normal) > 0.0) {return in_sphere;}
+    else {return -in_sphere;}
 }
 
 using point3 = vec3;

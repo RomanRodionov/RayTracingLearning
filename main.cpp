@@ -1,19 +1,27 @@
 #include "main.h"
 
-color ray_color(const Ray& ray, const Object& obj, int depth)
+color ray_color(const Ray& ray, const Object& scene, int depth)
 {
-    hit_record rec;
+    hit_record hit;
 
-    if (depth <= 0) {return color(0.0, 0.0, 0.0);}
-
-    if (obj.hit(ray, EPS, INF, rec))
+    if (depth <= 0) 
     {
-        point3 target = rec.p + rec.normal + random_unit_vector();
-        return ray_color(Ray(rec.p, target - rec.p), obj, depth - 1) * 0.5;
+        return color(0.0, 0.0, 0.0);
+    }
+
+    if (scene.hit(ray, EPS, INF, hit))
+    {
+        Ray scattered;
+        color attenuation;
+        if (hit.material->scatter(ray, hit, attenuation, scattered))
+        {
+            return attenuation * ray_color(scattered, scene, depth - 1);
+        }
+        return color(0, 0, 0);
     }
     vec3 unit_dir = unit_vector(ray.direction());
     double k = (unit_dir.y() + 1.0) * 0.5;
-    return color(1.0, 0.5, 0.35) * k + color(1.0, 1.0, 1.0) * (1.0 - k);
+    return SKY * k + WHITE * (1.0 - k);
 }
 
 int main(int, char**){
@@ -24,9 +32,16 @@ int main(int, char**){
 
     const double aspect_ratio = (double) IMG_WIDTH / (double) IMG_HEIGHT;
 
+    auto mat_ground = make_shared<Lambertian>(SAND);
+    auto mat_left = make_shared<Lambertian>(BLUE);
+    auto mat_center = make_shared<Metal>(LIGHT_GREY);
+    auto mat_right = make_shared<Metal>(GREEN);
+
     ObjectsList scene;
-    scene.add(make_shared<Sphere>(point3(0, 0, -2.0), 1.0));
-    scene.add(make_shared<Sphere>(point3(0, -101.0, -2), 100.0));
+    scene.add(make_shared<Sphere>(point3(0, 0, -2.0), 1.0, mat_center));
+    scene.add(make_shared<Sphere>(point3(-2.0, 0, -2.0), 1.0, mat_left));
+    scene.add(make_shared<Sphere>(point3(2.0, 0, -2.0), 1.0, mat_right));
+    scene.add(make_shared<Sphere>(point3(0, -101.0, -2), 100.0, mat_ground));
 
     Camera camera(FOV, aspect_ratio);
     

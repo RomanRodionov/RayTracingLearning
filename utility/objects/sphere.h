@@ -2,15 +2,18 @@
 #define SPHERE_H
 
 #include "../object.h"
-#include "../vec3.h"
+#include "../common.h"
+#include "../material.h"
 
 class Sphere : public Object
 {
     public:
         point3 center;
         double radius;
+        shared_ptr<Material> material;
         Sphere() {};
-        Sphere(point3 c, double r) : center(c), radius(r) {};
+        Sphere(point3 c, double r, shared_ptr<Material> m) 
+            : center(c), radius(r), material(m) {};
         virtual bool hit(const Ray& ray, double t_min, double t_max, hit_record& rec) const override;
 };
 
@@ -35,6 +38,7 @@ bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_record& rec) co
     rec.p = ray.at(root);
     vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(ray, outward_normal);
+    rec.material = material;
 
     return true;
 }
