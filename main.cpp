@@ -1,6 +1,6 @@
 #include "main.h"
 
-color ray_color(const Ray& ray, const Object& scene, int depth)
+color ray_color(const Ray& ray, const Object& scene, int depth, shared_ptr<SkyBox> skybox)
 {
     hit_record hit;
 
@@ -15,13 +15,15 @@ color ray_color(const Ray& ray, const Object& scene, int depth)
         color attenuation;
         if (hit.material->scatter(ray, hit, attenuation, scattered))
         {
-            return attenuation * ray_color(scattered, scene, depth - 1);
+            return attenuation * ray_color(scattered, scene, depth - 1, skybox);
         }
         return color(0, 0, 0);
     }
-    vec3 unit_dir = unit_vector(ray.direction());
+    return skybox->get_color(ray.direction());
+    /*
     double k = (unit_dir.y() + 1.0) * 0.5;
     return SKY * k + WHITE * (1.0 - k);
+    */
 }
 
 int main(int, char**){
@@ -34,14 +36,18 @@ int main(int, char**){
 
     auto mat_ground = make_shared<Lambertian>(SAND);
     auto mat_left = make_shared<Lambertian>(BLUE);
-    auto mat_center = make_shared<Metal>(LIGHT_GREY);
-    auto mat_right = make_shared<Metal>(GREEN);
+    auto mat_center = make_shared<Metal>(LIGHT_GREY, 0.0);
+    auto mat_right = make_shared<Metal>(GREEN, 0.3);
+    auto mat_small = make_shared<Metal>(RED, 0.8);
+
+    auto sky_box = make_shared<SkyBox>(make_shared<Texture>(make_shared<Image>("./data/cubemap.png")));
 
     ObjectsList scene;
-    scene.add(make_shared<Sphere>(point3(0, 0, -2.0), 1.0, mat_center));
-    scene.add(make_shared<Sphere>(point3(-2.0, 0, -2.0), 1.0, mat_left));
-    scene.add(make_shared<Sphere>(point3(2.0, 0, -2.0), 1.0, mat_right));
-    scene.add(make_shared<Sphere>(point3(0, -101.0, -2), 100.0, mat_ground));
+    scene.add(make_shared<Sphere>(point3(0, 0, -3.0), 1.0, mat_center));
+    //scene.add(make_shared<Sphere>(point3(-2.0, 0, -3.0), 1.0, mat_left));
+    //scene.add(make_shared<Sphere>(point3(2.0, 0, -3.0), 1.0, mat_right));
+    //scene.add(make_shared<Sphere>(point3(0, -101.0, -3), 100.0, mat_ground));
+    //scene.add(make_shared<Sphere>(point3(1.0, -0.75, -1.5), 0.25, mat_small));
 
     Camera camera(FOV, aspect_ratio);
     
@@ -57,7 +63,7 @@ int main(int, char**){
                 double v = (i + rand_double()) / (IMG_HEIGHT - 1);
                 double u = (j + rand_double()) / (IMG_WIDTH - 1);
                 Ray ray = camera.get_ray(u, v);
-                pixel_color += ray_color(ray, scene, MAX_DEPTH);
+                pixel_color += ray_color(ray, scene, MAX_DEPTH, sky_box);
             }
             image.draw_pixel(IMG_HEIGHT - i - 1, j, pixel_color, SAMPLES_PER_PIXEL);
             
