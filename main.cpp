@@ -52,7 +52,7 @@ int main(int, char**){
     scene.add(make_shared<Sphere>(point3(1.0, -0.75, -1.5), 0.25, mat_small));
     scene.add(make_shared<Sphere>(point3(-0.5, -0.6, -2), 0.4, glass2));
 
-    Camera camera(FOV, aspect_ratio);
+    Camera camera(point3(-2, 1, 0.5), point3(0, 0,-3), point3(0, 1, 0), FOV, aspect_ratio);
     
     std::cout << "Rendering in progress: 000%";
     int pixel_count = 0, image_size = IMG_HEIGHT * IMG_WIDTH;

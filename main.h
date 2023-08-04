@@ -24,9 +24,9 @@
 #include "utility/texture.h"
 #include "utility/skybox.h"
 
-#define IMG_WIDTH (640 * 4)
-#define IMG_HEIGHT (360 * 4)
-#define SAMPLES_PER_PIXEL 100
+#define IMG_WIDTH (640 * 1)
+#define IMG_HEIGHT (360 * 1)
+#define SAMPLES_PER_PIXEL 50
 #define FOV 120
 #define MAX_DEPTH 50
 
