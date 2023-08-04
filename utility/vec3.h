@@ -165,6 +165,15 @@ vec3 random_in_hemisphere(const vec3& normal)
     else {return -in_sphere;}
 }
 
+vec3 random_in_unit_disk()
+{
+    while (true)
+    {
+        vec3 p = vec3(rand_double(-1, 1), rand_double(-1, 1), 0);
+        if (p.square() < 1) {return p;}
+    }
+}
+
 using point3 = vec3;
 using color = vec3;
 

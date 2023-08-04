@@ -24,11 +24,17 @@
 #include "utility/texture.h"
 #include "utility/skybox.h"
 
+#define OUTPUT_FILE "output.png"
+#define SKYBOX_FILE "./data/cubemap.png"
 #define IMG_WIDTH (640 * 1)
 #define IMG_HEIGHT (360 * 1)
-#define SAMPLES_PER_PIXEL 50
-#define FOV 120
+#define SAMPLES_PER_PIXEL 200
+#define FOV 90
 #define MAX_DEPTH 50
+#define LOOK_FROM point3(-2, 1, 0.5)
+#define LOOK_AT point3(0, 0,-3)
+#define VIEW_UP point3(0, 1, 0)
+#define APERTURE 0.1
 
 color ray_color(const Ray& ray, const Object& obj, int depth, shared_ptr<SkyBox> skybox);
 

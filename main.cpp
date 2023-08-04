@@ -29,7 +29,7 @@ color ray_color(const Ray& ray, const Object& scene, int depth, shared_ptr<SkyBo
 int main(int, char**){
     std::srand(100);
 
-    std::string filename = "output.png";
+    std::string filename = OUTPUT_FILE;
     Image image(IMG_HEIGHT, IMG_WIDTH);
 
     const double aspect_ratio = (double) IMG_WIDTH / (double) IMG_HEIGHT;
@@ -41,18 +41,20 @@ int main(int, char**){
     auto mat_right = make_shared<Metal>(LIGHT_AQUA, 0.3);
     auto mat_small = make_shared<Metal>(RED, 0.8);
 
-    auto sky_box = make_shared<SkyBox>(make_shared<Texture>(make_shared<Image>("./data/cubemap.png")));
+    auto sky_box = make_shared<SkyBox>(make_shared<Texture>(make_shared<Image>(SKYBOX_FILE)));
 
     ObjectsList scene;
     scene.add(make_shared<Sphere>(point3(0, 0, -3.0), 1.0, mat_center));
     scene.add(make_shared<Sphere>(point3(-2.0, 0, -3.0), 1.0, glass1));
     scene.add(make_shared<Sphere>(point3(-2.0, 0, -3.0), -0.9, glass1));
     scene.add(make_shared<Sphere>(point3(2.0, 0, -3.0), 1.0, mat_right));
-    scene.add(make_shared<Sphere>(point3(0, -101.0, -3), 100.0, mat_ground));
+    scene.add(make_shared<Sphere>(point3(0, -10001.0, -3), 10000.0, mat_ground));
     scene.add(make_shared<Sphere>(point3(1.0, -0.75, -1.5), 0.25, mat_small));
     scene.add(make_shared<Sphere>(point3(-0.5, -0.6, -2), 0.4, glass2));
 
-    Camera camera(point3(-2, 1, 0.5), point3(0, 0,-3), point3(0, 1, 0), FOV, aspect_ratio);
+    double focus_dist = (LOOK_FROM - LOOK_AT).length();
+
+    Camera camera(LOOK_FROM, LOOK_AT, VIEW_UP, FOV, aspect_ratio, APERTURE, focus_dist);
     
     std::cout << "Rendering in progress: 000%";
     int pixel_count = 0, image_size = IMG_HEIGHT * IMG_WIDTH;
