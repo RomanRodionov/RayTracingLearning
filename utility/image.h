@@ -45,7 +45,6 @@ class Image
             assert(row >= 0 && row < height);
             assert(col >= 0 && col < width);
             color /= samples_per_pixel;
-            //gamma=2
             double r = color[0];
             double g = color[1];
             double b = color[2];

@@ -1338,9 +1338,7 @@ namespace __cxx11 {
 
 
   typedef basic_fstream<wchar_t> wfstream;
-
-
-
+# 230 "/usr/include/c++/11/iosfwd" 3
 
 }
 # 39 "/usr/include/c++/11/ios" 2 3
@@ -3271,13 +3269,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       using type = decltype(__test<_From, _To>(0));
     };
 #pragma GCC diagnostic pop
-
-
-  template<typename _From, typename _To>
-    struct __is_nothrow_convertible
-    : public __is_nt_convertible_helper<_From, _To>::type
-    { };
-# 1518 "/usr/include/c++/11/type_traits" 3
+# 1512 "/usr/include/c++/11/type_traits" 3
   template<typename _Tp>
     struct remove_const
     { typedef _Tp type; };
@@ -3484,7 +3476,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
   template<>
     struct __make_unsigned<__int128>
     { typedef unsigned __int128 __type; };
-# 1742 "/usr/include/c++/11/type_traits" 3
+# 1736 "/usr/include/c++/11/type_traits" 3
   template<typename _Tp,
     bool _IsInt = is_integral<_Tp>::value,
     bool _IsEnum = is_enum<_Tp>::value>
@@ -3550,7 +3542,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       using __type
  = typename __make_unsigned_selector<wchar_t, false, true>::__type;
     };
-# 1818 "/usr/include/c++/11/type_traits" 3
+# 1812 "/usr/include/c++/11/type_traits" 3
   template<>
     struct __make_unsigned<char16_t>
     {
@@ -3613,7 +3605,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
   template<>
     struct __make_signed<unsigned __int128>
     { typedef __int128 __type; };
-# 1898 "/usr/include/c++/11/type_traits" 3
+# 1892 "/usr/include/c++/11/type_traits" 3
   template<typename _Tp,
     bool _IsInt = is_integral<_Tp>::value,
     bool _IsEnum = is_enum<_Tp>::value>
@@ -3651,7 +3643,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       using __type
  = typename __make_signed_selector<wchar_t, false, true>::__type;
     };
-# 1946 "/usr/include/c++/11/type_traits" 3
+# 1940 "/usr/include/c++/11/type_traits" 3
   template<>
     struct __make_signed<char16_t>
     {
@@ -3777,7 +3769,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
  struct __attribute__((__aligned__)) { } __align;
       };
     };
-# 2082 "/usr/include/c++/11/type_traits" 3
+# 2076 "/usr/include/c++/11/type_traits" 3
   template<std::size_t _Len, std::size_t _Align =
     __alignof__(typename __aligned_storage_msa<_Len>::__type)>
     struct aligned_storage
@@ -3806,7 +3798,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
         sizeof(_Tp) > __strictest_alignment<_Types...>::_S_size
  ? sizeof(_Tp) : __strictest_alignment<_Types...>::_S_size;
     };
-# 2121 "/usr/include/c++/11/type_traits" 3
+# 2115 "/usr/include/c++/11/type_traits" 3
   template <size_t _Len, typename... _Types>
     struct aligned_union
     {
@@ -3938,7 +3930,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     template<typename _Tp, typename _Up>
       static __success_type<__decay_t<__cond_t<_Tp, _Up>>>
       _S_test(int);
-# 2261 "/usr/include/c++/11/type_traits" 3
+# 2255 "/usr/include/c++/11/type_traits" 3
     template<typename, typename>
       static __failure_type
       _S_test_2(...);
@@ -4318,7 +4310,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     typename... _Args>
     using __detected_or_t
       = typename __detected_or<_Default, _Op, _Args...>::type;
-# 2655 "/usr/include/c++/11/type_traits" 3
+# 2649 "/usr/include/c++/11/type_traits" 3
   template <typename _Tp>
     struct __is_swappable;
 
@@ -4537,10 +4529,14 @@ namespace std __attribute__ ((__visibility__ ("default")))
   template<typename _Tp, typename _Up>
     inline constexpr bool is_nothrow_swappable_with_v =
       is_nothrow_swappable_with<_Tp, _Up>::value;
-# 2882 "/usr/include/c++/11/type_traits" 3
+# 2876 "/usr/include/c++/11/type_traits" 3
   template<typename _Result, typename _Ret,
     bool = is_void<_Ret>::value, typename = void>
-    struct __is_invocable_impl : false_type { };
+    struct __is_invocable_impl
+    : false_type
+    {
+      using __nothrow_type = false_type;
+    };
 
 
   template<typename _Result, typename _Ret>
@@ -4548,7 +4544,9 @@ namespace std __attribute__ ((__visibility__ ("default")))
                                 true,
           __void_t<typename _Result::type>>
     : true_type
-    { };
+    {
+      using __nothrow_type = true_type;
+    };
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
@@ -4561,22 +4559,29 @@ namespace std __attribute__ ((__visibility__ ("default")))
     private:
 
 
-      static typename _Result::type _S_get();
+
+      static typename _Result::type _S_get() noexcept;
 
       template<typename _Tp>
- static void _S_conv(_Tp);
+ static void _S_conv(_Tp) noexcept;
 
 
-      template<typename _Tp, typename = decltype(_S_conv<_Tp>(_S_get()))>
- static true_type
+      template<typename _Tp, bool _Check_Noex = false,
+        typename = decltype(_S_conv<_Tp>(_S_get())),
+        bool _Noex = noexcept(_S_conv<_Tp>(_S_get()))>
+ static __bool_constant<_Check_Noex ? _Noex : true>
  _S_test(int);
 
-      template<typename _Tp>
+      template<typename _Tp, bool = false>
  static false_type
  _S_test(...);
 
     public:
+
       using type = decltype(_S_test<_Ret>(1));
+
+
+      using __nothrow_type = decltype(_S_test<_Ret, true>(1));
     };
 #pragma GCC diagnostic pop
 
@@ -4707,15 +4712,9 @@ namespace std __attribute__ ((__visibility__ ("default")))
     };
 
 
-  template<typename _Result, typename _Ret, typename = void>
-    struct __is_nt_invocable_impl : false_type { };
-
   template<typename _Result, typename _Ret>
-    struct __is_nt_invocable_impl<_Result, _Ret,
-      __void_t<typename _Result::type>>
-    : __or_<is_void<_Ret>,
-     __is_nothrow_convertible<typename _Result::type, _Ret>>
-    { };
+    using __is_nt_invocable_impl
+      = typename __is_invocable_impl<_Result, _Ret>::__nothrow_type;
 
 
 
@@ -4732,7 +4731,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       static_assert(std::__is_complete_or_unbounded(__type_identity<_Ret>{}),
  "_Ret must be a complete class or an unbounded array");
     };
-# 3093 "/usr/include/c++/11/type_traits" 3
+# 3094 "/usr/include/c++/11/type_traits" 3
 template <typename _Tp>
   inline constexpr bool is_void_v = is_void<_Tp>::value;
 template <typename _Tp>
@@ -4942,7 +4941,7 @@ template<typename _Ret, typename _Fn, typename... _Args>
 
   template<typename _Tp>
     inline constexpr bool is_aggregate_v = is_aggregate<_Tp>::value;
-# 3597 "/usr/include/c++/11/type_traits" 3
+# 3598 "/usr/include/c++/11/type_traits" 3
 
 }
 # 58 "/usr/include/c++/11/bits/move.h" 2 3
@@ -7096,11 +7095,11 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
 }
 # 68 "/usr/include/c++/11/bits/stl_iterator.h" 2 3
-# 87 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 88 "/usr/include/c++/11/bits/stl_iterator.h" 3
 namespace std __attribute__ ((__visibility__ ("default")))
 {
 
-# 126 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 127 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Iterator>
     class reverse_iterator
     : public iterator<typename iterator_traits<_Iterator>::iterator_category,
@@ -7111,7 +7110,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     {
       template<typename _Iter>
  friend class reverse_iterator;
-# 145 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 146 "/usr/include/c++/11/bits/stl_iterator.h" 3
     protected:
       _Iterator current;
 
@@ -7123,7 +7122,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
       typedef typename __traits_type::difference_type difference_type;
       typedef typename __traits_type::reference reference;
-# 176 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 177 "/usr/include/c++/11/bits/stl_iterator.h" 3
       constexpr
       reverse_iterator() : current() { }
 
@@ -7177,7 +7176,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       constexpr iterator_type
       base() const
       { return current; }
-# 240 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 241 "/usr/include/c++/11/bits/stl_iterator.h" 3
       constexpr reference
       operator*() const
       {
@@ -7306,7 +7305,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       constexpr reference
       operator[](difference_type __n) const
       { return *(*this + __n); }
-# 394 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 395 "/usr/include/c++/11/bits/stl_iterator.h" 3
     private:
       template<typename _Tp>
  static constexpr _Tp*
@@ -7318,7 +7317,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
  _S_to_pointer(_Tp __t)
         { return __t.operator->(); }
     };
-# 417 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 418 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Iterator>
     inline constexpr bool
     operator==(const reverse_iterator<_Iterator>& __x,
@@ -7393,7 +7392,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     operator>=(const reverse_iterator<_IteratorL>& __x,
         const reverse_iterator<_IteratorR>& __y)
     { return __x.base() <= __y.base(); }
-# 558 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 575 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _IteratorL, typename _IteratorR>
     inline constexpr auto
     operator-(const reverse_iterator<_IteratorL>& __x,
@@ -7425,7 +7424,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     inline constexpr reverse_iterator<_Iterator>
     make_reverse_iterator(_Iterator __i)
     { return reverse_iterator<_Iterator>(__i); }
-# 599 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 616 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Iterator>
    
     auto
@@ -7444,7 +7443,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     __miter_base(reverse_iterator<_Iterator> __it)
     -> decltype(__make_reverse_iterator(__miter_base(__it.base())))
     { return __make_reverse_iterator(__miter_base(__it.base())); }
-# 630 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 647 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Container>
     class back_insert_iterator
     : public iterator<output_iterator_tag, void, void, void, void>
@@ -7465,7 +7464,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       explicit
       back_insert_iterator(_Container& __x)
       : container(std::__addressof(__x)) { }
-# 670 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 687 "/usr/include/c++/11/bits/stl_iterator.h" 3
      
       back_insert_iterator&
       operator=(const typename _Container::value_type& __value)
@@ -7501,13 +7500,13 @@ namespace std __attribute__ ((__visibility__ ("default")))
       operator++(int)
       { return *this; }
     };
-# 717 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 734 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Container>
    
     inline back_insert_iterator<_Container>
     back_inserter(_Container& __x)
     { return back_insert_iterator<_Container>(__x); }
-# 733 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 750 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Container>
     class front_insert_iterator
     : public iterator<output_iterator_tag, void, void, void, void>
@@ -7528,7 +7527,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       explicit
       front_insert_iterator(_Container& __x)
       : container(std::__addressof(__x)) { }
-# 773 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 790 "/usr/include/c++/11/bits/stl_iterator.h" 3
      
       front_insert_iterator&
       operator=(const typename _Container::value_type& __value)
@@ -7564,13 +7563,13 @@ namespace std __attribute__ ((__visibility__ ("default")))
       operator++(int)
       { return *this; }
     };
-# 820 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 837 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Container>
    
     inline front_insert_iterator<_Container>
     front_inserter(_Container& __x)
     { return front_insert_iterator<_Container>(__x); }
-# 840 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 857 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Container>
     class insert_iterator
     : public iterator<output_iterator_tag, void, void, void, void>
@@ -7592,11 +7591,11 @@ namespace std __attribute__ ((__visibility__ ("default")))
     public:
 
       typedef _Container container_type;
-# 872 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 889 "/usr/include/c++/11/bits/stl_iterator.h" 3
      
       insert_iterator(_Container& __x, _Iter __i)
       : container(std::__addressof(__x)), iter(__i) {}
-# 908 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 925 "/usr/include/c++/11/bits/stl_iterator.h" 3
      
       insert_iterator&
       operator=(const typename _Container::value_type& __value)
@@ -7634,7 +7633,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       operator++(int)
       { return *this; }
     };
-# 964 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 981 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Container>
     inline insert_iterator<_Container>
     inserter(_Container& __x, typename _Container::iterator __i)
@@ -7649,7 +7648,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 namespace __gnu_cxx __attribute__ ((__visibility__ ("default")))
 {
 
-# 986 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1003 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Iterator, typename _Container>
     class __normal_iterator
     {
@@ -7755,7 +7754,7 @@ namespace __gnu_cxx __attribute__ ((__visibility__ ("default")))
       base() const noexcept
       { return _M_current; }
     };
-# 1118 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1152 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _IteratorL, typename _IteratorR, typename _Container>
    
     inline bool
@@ -7898,12 +7897,12 @@ namespace std __attribute__ ((__visibility__ ("default")))
     __niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container> __it)
     noexcept(std::is_nothrow_copy_constructible<_Iterator>::value)
     { return __it.base(); }
-# 1308 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1342 "/usr/include/c++/11/bits/stl_iterator.h" 3
   namespace __detail
   {
-# 1324 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1358 "/usr/include/c++/11/bits/stl_iterator.h" 3
   }
-# 1335 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1369 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Iterator>
     class move_iterator
 
@@ -7919,10 +7918,10 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
       template<typename _Iter2>
  friend class move_iterator;
-# 1359 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1408 "/usr/include/c++/11/bits/stl_iterator.h" 3
     public:
       using iterator_type = _Iterator;
-# 1370 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1422 "/usr/include/c++/11/bits/stl_iterator.h" 3
       typedef typename __traits_type::iterator_category iterator_category;
       typedef typename __traits_type::value_type value_type;
       typedef typename __traits_type::difference_type difference_type;
@@ -7967,7 +7966,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       constexpr iterator_type
       base() const
       { return _M_current; }
-# 1424 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1476 "/usr/include/c++/11/bits/stl_iterator.h" 3
       constexpr reference
       operator*() const
 
@@ -8044,7 +8043,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
 
       { return std::move(_M_current[__n]); }
-# 1529 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1581 "/usr/include/c++/11/bits/stl_iterator.h" 3
     };
 
   template<typename _IteratorL, typename _IteratorR>
@@ -8055,7 +8054,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
 
     { return __x.base() == __y.base(); }
-# 1548 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 1600 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _IteratorL, typename _IteratorR>
     inline constexpr bool
     operator!=(const move_iterator<_IteratorL>& __x,
@@ -8098,13 +8097,16 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
 
     { return !(__x < __y); }
-# 1599 "/usr/include/c++/11/bits/stl_iterator.h" 3
+
+
+
+
   template<typename _Iterator>
     inline constexpr bool
     operator==(const move_iterator<_Iterator>& __x,
         const move_iterator<_Iterator>& __y)
     { return __x.base() == __y.base(); }
-
+# 1659 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Iterator>
     inline constexpr bool
     operator!=(const move_iterator<_Iterator>& __x,
@@ -8171,7 +8173,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     inline constexpr _ReturnType
     __make_move_if_noexcept_iterator(_Tp* __i)
     { return _ReturnType(__i); }
-# 2342 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 2447 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _Iterator>
    
     auto
@@ -8192,7 +8194,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     __miter_base(move_iterator<_Iterator> __it)
     -> decltype(__miter_base(__it.base()))
     { return __miter_base(__it.base()); }
-# 2374 "/usr/include/c++/11/bits/stl_iterator.h" 3
+# 2479 "/usr/include/c++/11/bits/stl_iterator.h" 3
   template<typename _InputIterator>
     using __iter_key_t = remove_const_t<
     typename iterator_traits<_InputIterator>::value_type::first_type>;
@@ -15758,13 +15760,13 @@ namespace std __attribute__ ((__visibility__ ("default")))
     _Construct(_Tp* __p, _Args&&... __args)
     {
 # 119 "/usr/include/c++/11/bits/stl_construct.h" 3
-      ::new(static_cast<void*>(__p)) _Tp(std::forward<_Args>(__args)...);
+      ::new((void*)__p) _Tp(std::forward<_Args>(__args)...);
     }
 # 132 "/usr/include/c++/11/bits/stl_construct.h" 3
   template<typename _T1>
     inline void
     _Construct_novalue(_T1* __p)
-    { ::new(static_cast<void*>(__p)) _T1; }
+    { ::new((void*)__p) _T1; }
 
   template<typename _ForwardIterator>
     void
@@ -24304,6 +24306,8 @@ namespace std __attribute__ ((__visibility__ ("default")))
       value_too_large = 75,
 
 
+
+
       wrong_protocol_type = 91
     };
 
@@ -31035,19 +31039,12 @@ namespace std __attribute__ ((__visibility__ ("default")))
     inline basic_istream<_CharT, _Traits>&
     operator>>(basic_istream<_CharT, _Traits>& __in, _CharT* __s)
     {
-      size_t __n = __builtin_object_size(__s, 0);
-      if (__builtin_expect(__n < sizeof(_CharT), false))
+# 834 "/usr/include/c++/11/istream" 3
  {
 
-   do { if (__builtin_is_constant_evaluated() && !bool(__n >= sizeof(_CharT))) __builtin_unreachable(); } while (false);
-   __in.width(0);
-   __in.setstate(ios_base::failbit);
- }
-      else
- {
-   if (__n == (size_t)-1)
-     __n = __gnu_cxx::__numeric_traits<streamsize>::__max;
-   std::__istream_extract(__in, __s, __n / sizeof(_CharT));
+   streamsize __n = __gnu_cxx::__numeric_traits<streamsize>::__max;
+   __n /= sizeof(_CharT);
+   std::__istream_extract(__in, __s, __n);
  }
       return __in;
     }
@@ -31063,7 +31060,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     inline basic_istream<char, _Traits>&
     operator>>(basic_istream<char, _Traits>& __in, signed char* __s)
     { return __in >> reinterpret_cast<char*>(__s); }
-# 868 "/usr/include/c++/11/istream" 3
+# 889 "/usr/include/c++/11/istream" 3
   template<typename _CharT, typename _Traits>
     class basic_iostream
     : public basic_istream<_CharT, _Traits>,
@@ -31126,16 +31123,16 @@ namespace std __attribute__ ((__visibility__ ("default")))
       { __istream_type::swap(__rhs); }
 
     };
-# 951 "/usr/include/c++/11/istream" 3
+# 972 "/usr/include/c++/11/istream" 3
   template<typename _CharT, typename _Traits>
     basic_istream<_CharT, _Traits>&
     ws(basic_istream<_CharT, _Traits>& __is);
-# 967 "/usr/include/c++/11/istream" 3
+# 988 "/usr/include/c++/11/istream" 3
   template<typename _Is, typename _Tp,
     typename = _Require_derived_from_ios_base<_Is>,
     typename = decltype(std::declval<_Is&>() >> std::declval<_Tp>())>
     using __rvalue_stream_extraction_t = _Is&&;
-# 983 "/usr/include/c++/11/istream" 3
+# 1004 "/usr/include/c++/11/istream" 3
   template<typename _Istream, typename _Tp>
     inline __rvalue_stream_extraction_t<_Istream, _Tp>
     operator>>(_Istream&& __is, _Tp&& __x)
@@ -32232,7 +32229,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
 
 }
-# 996 "/usr/include/c++/11/istream" 2 3
+# 1017 "/usr/include/c++/11/istream" 2 3
 # 41 "/usr/include/c++/11/iostream" 2 3
 
 namespace std __attribute__ ((__visibility__ ("default")))
@@ -38846,6 +38843,7 @@ namespace __cxx11 {
 
 
 
+      __attribute__((__always_inline__))
       char_type*
       _M_high_mark() const noexcept
       {
@@ -38910,14 +38908,14 @@ namespace __cxx11 {
  off_type _M_goff[3];
  off_type _M_poff[3];
       };
-# 502 "/usr/include/c++/11/sstream" 3
+# 503 "/usr/include/c++/11/sstream" 3
       basic_stringbuf(basic_stringbuf&& __rhs, __xfer_bufptrs&&)
       : __streambuf_type(static_cast<const __streambuf_type&>(__rhs)),
       _M_mode(__rhs._M_mode), _M_string(std::move(__rhs._M_string))
       { }
-# 517 "/usr/include/c++/11/sstream" 3
+# 518 "/usr/include/c++/11/sstream" 3
     };
-# 535 "/usr/include/c++/11/sstream" 3
+# 536 "/usr/include/c++/11/sstream" 3
   template<typename _CharT, typename _Traits, typename _Alloc>
     class basic_istringstream : public basic_istream<_CharT, _Traits>
     {
@@ -38941,16 +38939,16 @@ namespace __cxx11 {
       __stringbuf_type _M_stringbuf;
 
     public:
-# 569 "/usr/include/c++/11/sstream" 3
+# 570 "/usr/include/c++/11/sstream" 3
       basic_istringstream()
       : __istream_type(), _M_stringbuf(ios_base::in)
       { this->init(&_M_stringbuf); }
-# 585 "/usr/include/c++/11/sstream" 3
+# 586 "/usr/include/c++/11/sstream" 3
       explicit
       basic_istringstream(ios_base::openmode __mode)
       : __istream_type(), _M_stringbuf(__mode | ios_base::in)
       { this->init(&_M_stringbuf); }
-# 603 "/usr/include/c++/11/sstream" 3
+# 604 "/usr/include/c++/11/sstream" 3
       explicit
       basic_istringstream(const __string_type& __str,
      ios_base::openmode __mode = ios_base::in)
@@ -38973,7 +38971,7 @@ namespace __cxx11 {
       : __istream_type(std::move(__rhs)),
       _M_stringbuf(std::move(__rhs._M_stringbuf))
       { __istream_type::set_rdbuf(&_M_stringbuf); }
-# 660 "/usr/include/c++/11/sstream" 3
+# 661 "/usr/include/c++/11/sstream" 3
       basic_istringstream&
       operator=(const basic_istringstream&) = delete;
 
@@ -38991,7 +38989,7 @@ namespace __cxx11 {
  __istream_type::swap(__rhs);
  _M_stringbuf.swap(__rhs._M_stringbuf);
       }
-# 686 "/usr/include/c++/11/sstream" 3
+# 687 "/usr/include/c++/11/sstream" 3
       __stringbuf_type*
       rdbuf() const
       { return const_cast<__stringbuf_type*>(&_M_stringbuf); }
@@ -39003,13 +39001,13 @@ namespace __cxx11 {
       __string_type
       str() const
       { return _M_stringbuf.str(); }
-# 721 "/usr/include/c++/11/sstream" 3
+# 722 "/usr/include/c++/11/sstream" 3
       void
       str(const __string_type& __s)
       { _M_stringbuf.str(__s); }
-# 738 "/usr/include/c++/11/sstream" 3
+# 739 "/usr/include/c++/11/sstream" 3
     };
-# 756 "/usr/include/c++/11/sstream" 3
+# 757 "/usr/include/c++/11/sstream" 3
   template <typename _CharT, typename _Traits, typename _Alloc>
     class basic_ostringstream : public basic_ostream<_CharT, _Traits>
     {
@@ -39033,16 +39031,16 @@ namespace __cxx11 {
       __stringbuf_type _M_stringbuf;
 
     public:
-# 790 "/usr/include/c++/11/sstream" 3
+# 791 "/usr/include/c++/11/sstream" 3
       basic_ostringstream()
       : __ostream_type(), _M_stringbuf(ios_base::out)
       { this->init(&_M_stringbuf); }
-# 806 "/usr/include/c++/11/sstream" 3
+# 807 "/usr/include/c++/11/sstream" 3
       explicit
       basic_ostringstream(ios_base::openmode __mode)
       : __ostream_type(), _M_stringbuf(__mode | ios_base::out)
       { this->init(&_M_stringbuf); }
-# 824 "/usr/include/c++/11/sstream" 3
+# 825 "/usr/include/c++/11/sstream" 3
       explicit
       basic_ostringstream(const __string_type& __str,
      ios_base::openmode __mode = ios_base::out)
@@ -39065,7 +39063,7 @@ namespace __cxx11 {
       : __ostream_type(std::move(__rhs)),
       _M_stringbuf(std::move(__rhs._M_stringbuf))
       { __ostream_type::set_rdbuf(&_M_stringbuf); }
-# 881 "/usr/include/c++/11/sstream" 3
+# 882 "/usr/include/c++/11/sstream" 3
       basic_ostringstream&
       operator=(const basic_ostringstream&) = delete;
 
@@ -39083,7 +39081,7 @@ namespace __cxx11 {
  __ostream_type::swap(__rhs);
  _M_stringbuf.swap(__rhs._M_stringbuf);
       }
-# 907 "/usr/include/c++/11/sstream" 3
+# 908 "/usr/include/c++/11/sstream" 3
       __stringbuf_type*
       rdbuf() const
       { return const_cast<__stringbuf_type*>(&_M_stringbuf); }
@@ -39095,13 +39093,13 @@ namespace __cxx11 {
       __string_type
       str() const
       { return _M_stringbuf.str(); }
-# 942 "/usr/include/c++/11/sstream" 3
+# 943 "/usr/include/c++/11/sstream" 3
       void
       str(const __string_type& __s)
       { _M_stringbuf.str(__s); }
-# 959 "/usr/include/c++/11/sstream" 3
+# 960 "/usr/include/c++/11/sstream" 3
     };
-# 977 "/usr/include/c++/11/sstream" 3
+# 978 "/usr/include/c++/11/sstream" 3
   template <typename _CharT, typename _Traits, typename _Alloc>
     class basic_stringstream : public basic_iostream<_CharT, _Traits>
     {
@@ -39125,16 +39123,16 @@ namespace __cxx11 {
       __stringbuf_type _M_stringbuf;
 
     public:
-# 1011 "/usr/include/c++/11/sstream" 3
+# 1012 "/usr/include/c++/11/sstream" 3
       basic_stringstream()
       : __iostream_type(), _M_stringbuf(ios_base::out | ios_base::in)
       { this->init(&_M_stringbuf); }
-# 1025 "/usr/include/c++/11/sstream" 3
+# 1026 "/usr/include/c++/11/sstream" 3
       explicit
       basic_stringstream(ios_base::openmode __m)
       : __iostream_type(), _M_stringbuf(__m)
       { this->init(&_M_stringbuf); }
-# 1041 "/usr/include/c++/11/sstream" 3
+# 1042 "/usr/include/c++/11/sstream" 3
       explicit
       basic_stringstream(const __string_type& __str,
     ios_base::openmode __m = ios_base::out | ios_base::in)
@@ -39157,7 +39155,7 @@ namespace __cxx11 {
       : __iostream_type(std::move(__rhs)),
       _M_stringbuf(std::move(__rhs._M_stringbuf))
       { __iostream_type::set_rdbuf(&_M_stringbuf); }
-# 1100 "/usr/include/c++/11/sstream" 3
+# 1101 "/usr/include/c++/11/sstream" 3
       basic_stringstream&
       operator=(const basic_stringstream&) = delete;
 
@@ -39175,7 +39173,7 @@ namespace __cxx11 {
  __iostream_type::swap(__rhs);
  _M_stringbuf.swap(__rhs._M_stringbuf);
       }
-# 1126 "/usr/include/c++/11/sstream" 3
+# 1127 "/usr/include/c++/11/sstream" 3
       __stringbuf_type*
       rdbuf() const
       { return const_cast<__stringbuf_type*>(&_M_stringbuf); }
@@ -39187,11 +39185,11 @@ namespace __cxx11 {
       __string_type
       str() const
       { return _M_stringbuf.str(); }
-# 1161 "/usr/include/c++/11/sstream" 3
+# 1162 "/usr/include/c++/11/sstream" 3
       void
       str(const __string_type& __s)
       { _M_stringbuf.str(__s); }
-# 1178 "/usr/include/c++/11/sstream" 3
+# 1179 "/usr/include/c++/11/sstream" 3
     };
 
 
@@ -39495,7 +39493,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
 
 }
-# 1218 "/usr/include/c++/11/sstream" 2 3
+# 1219 "/usr/include/c++/11/sstream" 2 3
 # 11 "/home/roman/Рабочий стол/raytracing/main.h" 2
 # 1 "/usr/include/c++/11/iomanip" 1 3
 # 36 "/usr/include/c++/11/iomanip" 3
@@ -41389,31 +41387,32 @@ namespace std __attribute__ ((__visibility__ ("default")))
       _CharT* __curr_symbol = 0;
       _CharT* __positive_sign = 0;
       _CharT* __negative_sign = 0;
+      size_t __sz;
       try
  {
    const string& __g = __mp.grouping();
-   _M_grouping_size = __g.size();
-   __grouping = new char[_M_grouping_size];
-   __g.copy(__grouping, _M_grouping_size);
+   __sz = _M_grouping_size = __g.size();
+   __grouping = new char[__sz];
+   __g.copy(__grouping, __sz);
    _M_use_grouping = (_M_grouping_size
         && static_cast<signed char>(__grouping[0]) > 0
         && (__grouping[0]
      != __gnu_cxx::__numeric_traits<char>::__max));
 
    const basic_string<_CharT>& __cs = __mp.curr_symbol();
-   _M_curr_symbol_size = __cs.size();
-   __curr_symbol = new _CharT[_M_curr_symbol_size];
-   __cs.copy(__curr_symbol, _M_curr_symbol_size);
+   __sz = _M_curr_symbol_size = __cs.size();
+   __curr_symbol = new _CharT[__sz];
+   __cs.copy(__curr_symbol, __sz);
 
    const basic_string<_CharT>& __ps = __mp.positive_sign();
-   _M_positive_sign_size = __ps.size();
-   __positive_sign = new _CharT[_M_positive_sign_size];
-   __ps.copy(__positive_sign, _M_positive_sign_size);
+   __sz = _M_positive_sign_size = __ps.size();
+   __positive_sign = new _CharT[__sz];
+   __ps.copy(__positive_sign, __sz);
 
    const basic_string<_CharT>& __ns = __mp.negative_sign();
-   _M_negative_sign_size = __ns.size();
-   __negative_sign = new _CharT[_M_negative_sign_size];
-   __ns.copy(__negative_sign, _M_negative_sign_size);
+   __sz = _M_negative_sign_size = __ns.size();
+   __negative_sign = new _CharT[__sz];
+   __ns.copy(__negative_sign, __sz);
 
    _M_pos_format = __mp.pos_format();
    _M_neg_format = __mp.neg_format();
@@ -41658,7 +41657,7 @@ namespace __cxx11 {
    __err |= ios_base::eofbit;
  return __beg;
       }
-# 368 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
+# 369 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
   template<typename _CharT, typename _InIter>
     _InIter
     money_get<_CharT, _InIter>::
@@ -41694,7 +41693,7 @@ namespace __cxx11 {
  }
       return __beg;
     }
-# 420 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
+# 421 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
   template<typename _CharT, typename _OutIter>
     template<bool _Intl>
       _OutIter
@@ -41854,7 +41853,7 @@ namespace __cxx11 {
  __io.width(0);
  return __s;
       }
-# 590 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
+# 591 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
   template<typename _CharT, typename _OutIter>
     _OutIter
     money_put<_CharT, _OutIter>::
@@ -41879,7 +41878,7 @@ namespace __cxx11 {
    __len = std::__convert_from_v(_S_get_c_locale(), __cs, __cs_size,
      "%.*Lf", 0, __units);
  }
-# 622 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
+# 623 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
       string_type __digits(__len, char_type());
       __ctype.widen(__cs, __cs + __len, &__digits[0]);
       return __intl ? _M_insert<true>(__s, __io, __fill, __digits)
@@ -41893,7 +41892,7 @@ namespace __cxx11 {
     const string_type& __digits) const
     { return __intl ? _M_insert<true>(__s, __io, __fill, __digits)
              : _M_insert<false>(__s, __io, __fill, __digits); }
-# 677 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
+# 678 "/usr/include/c++/11/bits/locale_facets_nonio.tcc" 3
 }
 
 
@@ -43488,10 +43487,6 @@ namespace std __attribute__ ((__visibility__ ("default")))
   template<bool, typename... _Types>
     struct _TupleConstraints
     {
-      template<typename _Tp, typename _Up>
- using is_constructible
-   = __bool_constant<__is_constructible(_Tp, _Up)>;
-
 
 
 
@@ -43610,7 +43605,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       template<typename, typename, typename... _Tail>
  static constexpr bool __valid_args()
  { return (sizeof...(_Tail) + 2) == sizeof...(_Elements); }
-# 688 "/usr/include/c++/11/tuple" 3
+# 684 "/usr/include/c++/11/tuple" 3
       template<typename _Tuple, typename = tuple,
         typename = __remove_cvref_t<_Tuple>>
  struct _UseOtherCtor
@@ -44346,7 +44341,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       typedef __tuple_element_t<__i, tuple<_Elements...>> __element_type;
       return std::forward<const __element_type>(std::__get_helper<__i>(__t));
     }
-# 1431 "/usr/include/c++/11/tuple" 3
+# 1427 "/usr/include/c++/11/tuple" 3
   template<typename _Tp, typename... _Types>
     constexpr size_t
     __find_uniq_type_in_pack()
@@ -44454,7 +44449,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
      0, sizeof...(_TElements)>;
       return __compare::__eq(__t, __u);
     }
-# 1568 "/usr/include/c++/11/tuple" 3
+# 1564 "/usr/include/c++/11/tuple" 3
   template<typename... _TElements, typename... _UElements>
     constexpr bool
     operator<(const tuple<_TElements...>& __t,
@@ -44681,7 +44676,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
   template<typename... _Types, typename _Alloc>
     struct uses_allocator<tuple<_Types...>, _Alloc> : true_type { };
-# 1804 "/usr/include/c++/11/tuple" 3
+# 1800 "/usr/include/c++/11/tuple" 3
   template<class _T1, class _T2>
     template<typename... _Args1, typename... _Args2>
      
@@ -58223,9 +58218,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       __weak_ptr&
       operator=(__weak_ptr&& __r) noexcept
       {
- _M_ptr = __r._M_ptr;
- _M_refcount = std::move(__r._M_refcount);
- __r._M_ptr = nullptr;
+ __weak_ptr(std::move(__r)).swap(*this);
  return *this;
       }
 
@@ -59095,6 +59088,13 @@ namespace std __attribute__ ((__visibility__ ("default")))
       | __memory_order_modifier(__m & __memory_order_modifier_mask));
   }
 
+  constexpr bool
+  __is_valid_cmpexch_failure_order(memory_order __m) noexcept
+  {
+    return (__m & __memory_order_mask) != memory_order_release
+ && (__m & __memory_order_mask) != memory_order_acq_rel;
+  }
+
   inline __attribute__((__always_inline__)) void
   atomic_thread_fence(memory_order __m) noexcept
   { __atomic_thread_fence(int(__m)); }
@@ -59115,7 +59115,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
   template<typename _IntTp>
     struct __atomic_base;
-# 154 "/usr/include/c++/11/bits/atomic_base.h" 3
+# 161 "/usr/include/c++/11/bits/atomic_base.h" 3
   template<typename _Tp>
     struct atomic;
 
@@ -59125,7 +59125,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
 
 
     typedef bool __atomic_flag_data_type;
-# 177 "/usr/include/c++/11/bits/atomic_base.h" 3
+# 184 "/usr/include/c++/11/bits/atomic_base.h" 3
   extern "C" {
 
   struct __atomic_flag_base
@@ -59162,7 +59162,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     {
       return __atomic_test_and_set (&_M_i, int(__m));
     }
-# 261 "/usr/include/c++/11/bits/atomic_base.h" 3
+# 268 "/usr/include/c++/11/bits/atomic_base.h" 3
     inline __attribute__((__always_inline__)) void
     clear(memory_order __m = memory_order_seq_cst) noexcept
     {
@@ -59192,7 +59192,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
     _S_init(bool __i)
     { return __i ? 1 : 0; }
   };
-# 316 "/usr/include/c++/11/bits/atomic_base.h" 3
+# 323 "/usr/include/c++/11/bits/atomic_base.h" 3
   template<typename _ITp>
     struct __atomic_base
     {
@@ -59391,13 +59391,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       compare_exchange_weak(__int_type& __i1, __int_type __i2,
        memory_order __m1, memory_order __m2) noexcept
       {
- memory_order __b2 __attribute__ ((__unused__))
-   = __m2 & __memory_order_mask;
- memory_order __b1 __attribute__ ((__unused__))
-   = __m1 & __memory_order_mask;
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_release)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_acq_rel)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 <= __b1)) __builtin_unreachable(); } while (false);
+ do { if (__builtin_is_constant_evaluated() && !bool(__is_valid_cmpexch_failure_order(__m2))) __builtin_unreachable(); } while (false);
 
  return __atomic_compare_exchange_n(&_M_i, &__i1, __i2, 1,
         int(__m1), int(__m2));
@@ -59408,13 +59402,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
        memory_order __m1,
        memory_order __m2) volatile noexcept
       {
- memory_order __b2 __attribute__ ((__unused__))
-   = __m2 & __memory_order_mask;
- memory_order __b1 __attribute__ ((__unused__))
-   = __m1 & __memory_order_mask;
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_release)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_acq_rel)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 <= __b1)) __builtin_unreachable(); } while (false);
+ do { if (__builtin_is_constant_evaluated() && !bool(__is_valid_cmpexch_failure_order(__m2))) __builtin_unreachable(); } while (false);
 
  return __atomic_compare_exchange_n(&_M_i, &__i1, __i2, 1,
         int(__m1), int(__m2));
@@ -59440,13 +59428,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
       compare_exchange_strong(__int_type& __i1, __int_type __i2,
          memory_order __m1, memory_order __m2) noexcept
       {
- memory_order __b2 __attribute__ ((__unused__))
-   = __m2 & __memory_order_mask;
- memory_order __b1 __attribute__ ((__unused__))
-   = __m1 & __memory_order_mask;
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_release)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_acq_rel)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 <= __b1)) __builtin_unreachable(); } while (false);
+ do { if (__builtin_is_constant_evaluated() && !bool(__is_valid_cmpexch_failure_order(__m2))) __builtin_unreachable(); } while (false);
 
  return __atomic_compare_exchange_n(&_M_i, &__i1, __i2, 0,
         int(__m1), int(__m2));
@@ -59457,14 +59439,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
          memory_order __m1,
          memory_order __m2) volatile noexcept
       {
- memory_order __b2 __attribute__ ((__unused__))
-   = __m2 & __memory_order_mask;
- memory_order __b1 __attribute__ ((__unused__))
-   = __m1 & __memory_order_mask;
-
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_release)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_acq_rel)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 <= __b1)) __builtin_unreachable(); } while (false);
+ do { if (__builtin_is_constant_evaluated() && !bool(__is_valid_cmpexch_failure_order(__m2))) __builtin_unreachable(); } while (false);
 
  return __atomic_compare_exchange_n(&_M_i, &__i1, __i2, 0,
         int(__m1), int(__m2));
@@ -59485,7 +59460,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
  return compare_exchange_strong(__i1, __i2, __m,
            __cmpexch_failure_order(__m));
       }
-# 633 "/usr/include/c++/11/bits/atomic_base.h" 3
+# 615 "/usr/include/c++/11/bits/atomic_base.h" 3
       inline __attribute__((__always_inline__)) __int_type
       fetch_add(__int_type __i,
   memory_order __m = memory_order_seq_cst) noexcept
@@ -59725,13 +59700,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
          memory_order __m1,
          memory_order __m2) noexcept
       {
- memory_order __b2 __attribute__ ((__unused__))
-   = __m2 & __memory_order_mask;
- memory_order __b1 __attribute__ ((__unused__))
-   = __m1 & __memory_order_mask;
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_release)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_acq_rel)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 <= __b1)) __builtin_unreachable(); } while (false);
+ do { if (__builtin_is_constant_evaluated() && !bool(__is_valid_cmpexch_failure_order(__m2))) __builtin_unreachable(); } while (false);
 
  return __atomic_compare_exchange_n(&_M_p, &__p1, __p2, 0,
         int(__m1), int(__m2));
@@ -59742,19 +59711,12 @@ namespace std __attribute__ ((__visibility__ ("default")))
          memory_order __m1,
          memory_order __m2) volatile noexcept
       {
- memory_order __b2 __attribute__ ((__unused__))
-   = __m2 & __memory_order_mask;
- memory_order __b1 __attribute__ ((__unused__))
-   = __m1 & __memory_order_mask;
-
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_release)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 != memory_order_acq_rel)) __builtin_unreachable(); } while (false);
- do { if (__builtin_is_constant_evaluated() && !bool(__b2 <= __b1)) __builtin_unreachable(); } while (false);
+ do { if (__builtin_is_constant_evaluated() && !bool(__is_valid_cmpexch_failure_order(__m2))) __builtin_unreachable(); } while (false);
 
  return __atomic_compare_exchange_n(&_M_p, &__p1, __p2, 0,
         int(__m1), int(__m2));
       }
-# 927 "/usr/include/c++/11/bits/atomic_base.h" 3
+# 896 "/usr/include/c++/11/bits/atomic_base.h" 3
       inline __attribute__((__always_inline__)) __pointer_type
       fetch_add(ptrdiff_t __d,
   memory_order __m = memory_order_seq_cst) noexcept
@@ -59775,7 +59737,7 @@ namespace std __attribute__ ((__visibility__ ("default")))
   memory_order __m = memory_order_seq_cst) volatile noexcept
       { return __atomic_fetch_sub(&_M_p, _M_type_size(__d), int(__m)); }
     };
-# 1948 "/usr/include/c++/11/bits/atomic_base.h" 3
+# 1921 "/usr/include/c++/11/bits/atomic_base.h" 3
 
 }
 # 34 "/usr/include/c++/11/bits/shared_ptr_atomic.h" 2 3
@@ -60463,6 +60425,8 @@ using std::sqrt;
 const double INF = std::numeric_limits<double>::infinity();
 const double PI = 3.1415926535897932385;
 
+
+
 inline double degrees_to_radians(double degrees)
 {
     return degrees * PI / 180.0;
@@ -60471,9 +60435,9 @@ inline double degrees_to_radians(double degrees)
 inline double rand_double()
 {
     return rand() / (
-# 23 "/home/roman/Рабочий стол/raytracing/utility/common.h" 3 4
+# 25 "/home/roman/Рабочий стол/raytracing/utility/common.h" 3 4
                     2147483647 
-# 23 "/home/roman/Рабочий стол/raytracing/utility/common.h"
+# 25 "/home/roman/Рабочий стол/raytracing/utility/common.h"
                              + 1.0);
 }
 
@@ -60585,6 +60549,11 @@ class vec3
         {
             return vec3(rand_double(min, max), rand_double(min, max), rand_double(min, max));
         }
+        bool near_zero() const
+        {
+            const double s = 1e-8;
+            return (fabs(data[0]) < s) && (fabs(data[1]) < s) && (fabs(data[2]) < s);
+        }
 };
 
 inline std::ostream& operator<<(std::ostream &out, const vec3 &vec)
@@ -60609,6 +60578,11 @@ inline vec3 unit_vector(vec3 vec)
     return vec / vec.length();
 }
 
+vec3 reflect(const vec3& v, const vec3& n)
+{
+    return v - n * 2 * dot(v, n);
+}
+
 vec3 random_in_unit_sphere()
 {
     while (true)
@@ -60616,6 +60590,18 @@ vec3 random_in_unit_sphere()
         vec3 point = vec3::random(-1, 1);
         if (point.square() < 1) {return point;}
     }
+}
+
+vec3 random_unit_vector()
+{
+    return unit_vector(random_in_unit_sphere());
+}
+
+vec3 random_in_hemisphere(const vec3& normal)
+{
+    vec3 in_sphere = random_in_unit_sphere();
+    if (dot(in_sphere, normal) > 0.0) {return in_sphere;}
+    else {return -in_sphere;}
 }
 
 using point3 = vec3;
@@ -60627,6 +60613,19 @@ using color = vec3;
 
 # 1 "/home/roman/Рабочий стол/raytracing/utility/vec3.h" 1
 # 5 "/home/roman/Рабочий стол/raytracing/utility/color.h" 2
+
+
+
+
+
+const color BLACK = color(0.0, 0.0, 0.0);
+const color WHITE = color(1.0, 1.0, 1.0);
+const color RED = color(1.0, 0.0, 0.0);
+const color GREEN = color(0.0, 1.0, 0.0);
+const color BLUE = color(0.0, 0.0, 1.0);
+const color LIGHT_GREY = color(0.8, 0.8, 0.8);
+const color SAND = color(0.76, 0.7, 0.5);
+const color SKY = color(0.53, 0.81, 0.92);
 # 15 "/home/roman/Рабочий стол/raytracing/main.h" 2
 # 1 "/home/roman/Рабочий стол/raytracing/utility/image.h" 1
 
@@ -74308,48 +74307,101 @@ class Image
 {
     private:
         int width, height;
-        std::vector<std::array<unsigned char, 3>> data;
+        std::vector<unsigned char> data;
     public:
         Image(int h, int w) : height(h), width(w)
         {
-            data = std::vector<std::array<unsigned char, 3>>(width * height);
+            data = std::vector<unsigned char>(width * height * 3);
         }
-        int save_to_png(std::string filename)
+        Image(std::string filename)
+        {
+            load_png(filename);
+        }
+        int get_width() const {return width;}
+        int get_height() const {return height;}
+        int load_png(std::string filename)
+        {
+            unsigned char *img = stbi_load(filename.c_str(), &width, &height, nullptr, 3);
+            if (img == 
+# 35 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+                      __null
+# 35 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+                          ) {return 1;}
+            data = std::vector<unsigned char>(img, img + width * height * 3);
+            return 0;
+        }
+        int save_to_png(std::string filename) const
         {
             return stbi_write_png(filename.c_str(), width, height, 3, data.data(), width * 3);
         }
         void draw_pixel(int row, int col, color color, int samples_per_pixel)
         {
             
-# 32 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+# 45 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
            (static_cast <bool> (
-# 32 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+# 45 "/home/roman/Рабочий стол/raytracing/utility/image.h"
            row >= 0 && row < height
-# 32 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+# 45 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
            ) ? void (0) : __assert_fail (
-# 32 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+# 45 "/home/roman/Рабочий стол/raytracing/utility/image.h"
            "row >= 0 && row < height"
-# 32 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
-           , "/home/roman/Рабочий стол/raytracing/utility/image.h", 32, __extension__ __PRETTY_FUNCTION__))
-# 32 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+# 45 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           , "/home/roman/Рабочий стол/raytracing/utility/image.h", 45, __extension__ __PRETTY_FUNCTION__))
+# 45 "/home/roman/Рабочий стол/raytracing/utility/image.h"
                                            ;
             
-# 33 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+# 46 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
            (static_cast <bool> (
-# 33 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+# 46 "/home/roman/Рабочий стол/raytracing/utility/image.h"
            col >= 0 && col < width
-# 33 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+# 46 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
            ) ? void (0) : __assert_fail (
-# 33 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+# 46 "/home/roman/Рабочий стол/raytracing/utility/image.h"
            "col >= 0 && col < width"
-# 33 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
-           , "/home/roman/Рабочий стол/raytracing/utility/image.h", 33, __extension__ __PRETTY_FUNCTION__))
-# 33 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+# 46 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           , "/home/roman/Рабочий стол/raytracing/utility/image.h", 46, __extension__ __PRETTY_FUNCTION__))
+# 46 "/home/roman/Рабочий стол/raytracing/utility/image.h"
                                           ;
             color /= samples_per_pixel;
-            data[width * row + col] = { static_cast<unsigned char> (255.999 * clamp(color[0], 0.0, 1.0)),
-                                        static_cast<unsigned char> (255.999 * clamp(color[1], 0.0, 1.0)),
-                                        static_cast<unsigned char> (255.999 * clamp(color[2], 0.0, 1.0))};
+
+            double r = color[0];
+            double g = color[1];
+            double b = color[2];
+            data[(width * row + col) * 3] = static_cast<unsigned char> (255.999 * clamp(r, 0.0, 1.0));
+            data[(width * row + col) * 3 + 1] = static_cast<unsigned char> (255.999 * clamp(g, 0.0, 1.0));
+            data[(width * row + col) * 3 + 2] = static_cast<unsigned char> (255.999 * clamp(b, 0.0, 1.0));
+        }
+        inline color get_color(int row, int col) const
+        {
+            
+# 58 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           (static_cast <bool> (
+# 58 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+           row >= 0 && row < height
+# 58 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           ) ? void (0) : __assert_fail (
+# 58 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+           "row >= 0 && row < height"
+# 58 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           , "/home/roman/Рабочий стол/raytracing/utility/image.h", 58, __extension__ __PRETTY_FUNCTION__))
+# 58 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+                                           ;
+            
+# 59 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           (static_cast <bool> (
+# 59 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+           col >= 0 && col < width
+# 59 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           ) ? void (0) : __assert_fail (
+# 59 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+           "col >= 0 && col < width"
+# 59 "/home/roman/Рабочий стол/raytracing/utility/image.h" 3 4
+           , "/home/roman/Рабочий стол/raytracing/utility/image.h", 59, __extension__ __PRETTY_FUNCTION__))
+# 59 "/home/roman/Рабочий стол/raytracing/utility/image.h"
+                                          ;
+            return color((double) data[(width * row + col) * 3] / 255.999,
+                         (double) data[(width * row + col) * 3 + 1] / 255.999,
+                         (double) data[(width * row + col) * 3 + 2] / 255.999);
         }
 };
 # 16 "/home/roman/Рабочий стол/raytracing/main.h" 2
@@ -74383,8 +74435,12 @@ class Ray
 
 # 1 "/home/roman/Рабочий стол/raytracing/utility/objects/../ray.h" 1
 # 5 "/home/roman/Рабочий стол/raytracing/utility/objects/../object.h" 2
+# 1 "/home/roman/Рабочий стол/raytracing/utility/objects/../vec3.h" 1
+# 6 "/home/roman/Рабочий стол/raytracing/utility/objects/../object.h" 2
 
 
+
+class Material;
 
 struct hit_record
 {
@@ -74392,14 +74448,11 @@ struct hit_record
     vec3 normal;
     double t;
     bool front_face;
+    shared_ptr<Material> material;
     inline void set_face_normal(const Ray& ray, const vec3& outward_normal)
     {
         front_face = dot(ray.direction(), outward_normal) < 0;
         normal = front_face ? outward_normal : -outward_normal;
-        if (!front_face)
-        {
-            std::cout << ray.direction() << ray.origin() << std::endl;
-        }
     }
 };
 
@@ -74409,16 +74462,39 @@ class Object
         virtual bool hit(const Ray& ray, double t_min, double t_max, hit_record& rec) const = 0;
 };
 # 5 "/home/roman/Рабочий стол/raytracing/utility/objects/sphere.h" 2
-# 1 "/home/roman/Рабочий стол/raytracing/utility/objects/../vec3.h" 1
+# 1 "/home/roman/Рабочий стол/raytracing/utility/objects/../common.h" 1
 # 6 "/home/roman/Рабочий стол/raytracing/utility/objects/sphere.h" 2
+# 1 "/home/roman/Рабочий стол/raytracing/utility/objects/../material.h" 1
+
+
+
+# 1 "/home/roman/Рабочий стол/raytracing/utility/objects/../common.h" 1
+# 5 "/home/roman/Рабочий стол/raytracing/utility/objects/../material.h" 2
+# 1 "/home/roman/Рабочий стол/raytracing/utility/objects/../object.h" 1
+# 6 "/home/roman/Рабочий стол/raytracing/utility/objects/../material.h" 2
+
+
+class Material
+{
+    public:
+        virtual bool scatter(
+            const Ray& fall_ray,
+            const hit_record& hit,
+            color& attenuation,
+            Ray& scattered
+        ) const = 0;
+};
+# 7 "/home/roman/Рабочий стол/raytracing/utility/objects/sphere.h" 2
 
 class Sphere : public Object
 {
     public:
         point3 center;
         double radius;
+        shared_ptr<Material> material;
         Sphere() {};
-        Sphere(point3 c, double r) : center(c), radius(r) {};
+        Sphere(point3 c, double r, shared_ptr<Material> m)
+            : center(c), radius(r), material(m) {};
         virtual bool hit(const Ray& ray, double t_min, double t_max, hit_record& rec) const override;
 };
 
@@ -74433,16 +74509,17 @@ bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_record& rec) co
     double sqrtd = sqrt(discr);
     double root = (-hb - sqrtd) / a;
     if (root > t_max) {return false;}
-    if (root < t_min)
+    if (root <= t_min)
     {
         root = (-hb + sqrtd) / a;
-        if (root < t_min || root > t_max) {return false;}
+        if (root <= t_min || root > t_max) {return false;}
     }
 
     rec.t = root;
     rec.p = ray.at(root);
     vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(ray, outward_normal);
+    rec.material = material;
 
     return true;
 }
@@ -74490,6 +74567,62 @@ bool ObjectsList::hit(const Ray& ray, double t_min, double t_max, hit_record& re
     return hit_flag;
 }
 # 19 "/home/roman/Рабочий стол/raytracing/main.h" 2
+# 1 "/home/roman/Рабочий стол/raytracing/utility/materials/lambertian.h" 1
+
+
+
+# 1 "/home/roman/Рабочий стол/raytracing/utility/materials/../material.h" 1
+# 5 "/home/roman/Рабочий стол/raytracing/utility/materials/lambertian.h" 2
+
+class Lambertian : public Material
+{
+    public:
+        color albedo;
+        Lambertian(const color& a) : albedo(a) {}
+        virtual bool scatter(
+            const Ray& fall_ray,
+            const hit_record& hit,
+            color& attenuation,
+            Ray& scattered
+        ) const override
+        {
+            vec3 scatter_direction = hit.normal + random_unit_vector();
+            if (scatter_direction.near_zero())
+            {
+                scatter_direction = hit.normal;
+            }
+            scattered = Ray(hit.p, scatter_direction);
+            attenuation = albedo;
+            return true;
+        }
+};
+# 20 "/home/roman/Рабочий стол/raytracing/main.h" 2
+# 1 "/home/roman/Рабочий стол/raytracing/utility/materials/metal.h" 1
+
+
+
+
+
+class Metal : public Material
+{
+    public:
+        color albedo;
+        double fuzz;
+        Metal(const color& a, const double& f) : albedo(a), fuzz(f < 1.0 ? f : 1.0) {}
+        virtual bool scatter(
+            const Ray& fall_ray,
+            const hit_record& hit,
+            color& attenuation,
+            Ray& scattered
+        ) const override
+        {
+            vec3 reflected = reflect(unit_vector(fall_ray.direction()), hit.normal);
+            scattered = Ray(hit.p, reflected + random_in_unit_sphere() * fuzz);
+            attenuation = albedo;
+            return (dot(scattered.direction(), hit.normal) > 0);
+        }
+};
+# 21 "/home/roman/Рабочий стол/raytracing/main.h" 2
 # 1 "/home/roman/Рабочий стол/raytracing/utility/camera.h" 1
 
 
@@ -74523,9 +74656,175 @@ class Camera
             return Ray(origin, ll_corner + horizontal * u + vertical * v - origin);
         }
 };
-# 20 "/home/roman/Рабочий стол/raytracing/main.h" 2
+# 22 "/home/roman/Рабочий стол/raytracing/main.h" 2
 # 1 "/home/roman/Рабочий стол/raytracing/utility/common.h" 1
-# 21 "/home/roman/Рабочий стол/raytracing/main.h" 2
+# 23 "/home/roman/Рабочий стол/raytracing/main.h" 2
+# 1 "/home/roman/Рабочий стол/raytracing/utility/texture.h" 1
+
+
+
+# 1 "/usr/include/c++/11/cmath" 1 3
+# 39 "/usr/include/c++/11/cmath" 3
+       
+# 40 "/usr/include/c++/11/cmath" 3
+# 5 "/home/roman/Рабочий стол/raytracing/utility/texture.h" 2
+
+
+
+
+# 1 "/home/roman/Рабочий стол/raytracing/utility/image.h" 1
+# 10 "/home/roman/Рабочий стол/raytracing/utility/texture.h" 2
+
+
+class Texture
+{
+    public:
+        std::vector<color> data;
+        int width, height;
+        Texture() : width(0), height(0) {}
+        Texture(const shared_ptr<Image>& img)
+        {
+            load(img);
+        }
+        void load(const shared_ptr<Image>& img)
+        {
+            width = img->get_width();
+            height = img->get_height();
+            data.clear();
+            for (int row = 0; row < height; ++row)
+            {
+                for (int col = 0; col < width; ++col)
+                {
+                    data.push_back(img->get_color(row, col));
+                }
+            }
+        }
+        shared_ptr<Texture> crop(const std::pair<double, double>& pos, const std::pair<double, double>& size)
+        {
+            auto new_tex = make_shared<Texture>();
+            int u = pos.first * width, v = pos.second * height, w = size.first * width, h = size.second * height;
+            for (int i = v; i < v + h; ++i)
+            {
+                for (int j = u; j < u + w; ++j)
+                {
+                    new_tex->data.push_back(data[i * width + j]);
+                }
+            }
+            new_tex->width = w;
+            new_tex->height = h;
+            return new_tex;
+        }
+        color get_color(double u_orig, double v_orig) const
+        {
+            double temp;
+            double u = (modf(u_orig, &temp) + 1.0) * width - 0.5;
+            double v = (modf(v_orig, &temp) + 1.0) * height - 0.5;
+            double u_alpha = modf(u + 1.0, &temp);
+            double v_alpha = modf(v + 1.0, &temp);
+            int ul = (int) (u + width) % width;
+            int ur = (ul + 1) % width;
+            int vu = (int) (v + height) % height;
+            int vl = (vu + 1) % height;
+            return data[(vu * width) + ul] * (1 - u_alpha) * (1 - v_alpha) +
+                   data[(vu * width) + ur] * u_alpha * (1 - v_alpha) +
+                   data[(vl * width) + ul] * (1 - u_alpha) * v_alpha +
+                   data[(vl * width) + ur] * u_alpha * v_alpha;
+        }
+};
+# 24 "/home/roman/Рабочий стол/raytracing/main.h" 2
+# 1 "/home/roman/Рабочий стол/raytracing/utility/skybox.h" 1
+
+
+
+
+# 1 "/home/roman/Рабочий стол/raytracing/utility/texture.h" 1
+# 6 "/home/roman/Рабочий стол/raytracing/utility/skybox.h" 2
+
+
+class SkyBox
+{
+    public:
+        shared_ptr<Texture> left;
+        shared_ptr<Texture> front;
+        shared_ptr<Texture> right;
+        shared_ptr<Texture> back;
+        shared_ptr<Texture> top;
+        shared_ptr<Texture> bottom;
+        std::pair<double, double> size;
+        int width, height;
+        SkyBox() {}
+        SkyBox(const shared_ptr<Texture>& tex)
+        {
+            load_texture(tex);
+        }
+        void load_texture(const shared_ptr<Texture>& tex)
+        {
+            std::pair<double, double> size = {1.0 / 4.0, 1.0 / 3.0};
+            left = tex->crop({0, size.second}, size);
+            front = tex->crop({size.first, size.second}, size);
+            right = tex->crop({size.first * 2, size.second}, size);
+            back = tex->crop({size.first * 3, size.second}, size);
+            top = tex->crop({size.first, 0}, size);
+            bottom = tex->crop({size.first, size.second * 2}, size);
+            width = tex->width * size.first;
+            height = tex->height * size.second;
+        }
+        color get_color(const vec3& look_at_original)
+        {
+            const double u_error = 1.0 - 2.0 / width;
+            const double v_error = 1.0 - 2.0 / height;
+            const double edge = 1 / sqrt(3);
+            vec3 look_at = unit_vector(look_at_original);
+            if (fabs(look_at.y()) > edge)
+            {
+                look_at *= edge / fabs(look_at.y());
+            }
+            double x = look_at.x();
+            double y = look_at.y();
+            double z = look_at.z();
+            double u, v;
+            if (fabs(x) >= edge || fabs(z) >= edge)
+            {
+                if (fabs(z) >= fabs(x))
+                {
+                    if (z < 0)
+                    {
+                        u = 0.5 - x / z / 2 * u_error;
+                        v = 0.5 + y / z / 2 * v_error;
+                        return front->get_color(u, v);
+                    }
+                    else
+                    {
+                        u = 0.5 - x / z / 2 * u_error;
+                        v = 0.5 - y / z / 2 * v_error;
+                        return back->get_color(u, v);
+                    }
+                }
+                if (x > 0)
+                {
+                    u = 0.5 + z / x / 2 * u_error;
+                    v = 0.5 - y / x / 2 * v_error;
+                    return right->get_color(u, v);
+                }
+                else
+                {
+                    u = 0.5 + z / x / 2 * u_error;
+                    v = 0.5 + y / x / 2 * v_error;
+                    return left->get_color(u, v);
+                }
+            }
+            if (y > 0)
+            {
+                u = 0.5 + x / y / 2 * u_error;
+                v = 0.5 - z / y / 2 * v_error;
+                return top->get_color(u, v);
+            }
+            u = 0.5 - x / y / 2 * u_error;
+            v = 0.5 - z / y / 2 * v_error;
+            return bottom->get_color(u, v);
+        }
+};
+# 25 "/home/roman/Рабочий стол/raytracing/main.h" 2
 
 
 
@@ -74533,23 +74832,33 @@ class Camera
 
 
 
-color ray_color(const Ray& ray, const Object& obj, int depth);
+color ray_color(const Ray& ray, const Object& obj, int depth, shared_ptr<SkyBox> skybox);
 # 2 "/home/roman/Рабочий стол/raytracing/main.cpp" 2
 
-color ray_color(const Ray& ray, const Object& obj, int depth)
+color ray_color(const Ray& ray, const Object& scene, int depth, shared_ptr<SkyBox> skybox)
 {
-    hit_record rec;
+    hit_record hit;
 
-    if (depth <= 0) {return color(0.0, 0.0, 0.0);}
-
-    if (obj.hit(ray, 0.000, INF, rec))
+    if (depth <= 0)
     {
-        point3 target = rec.p + rec.normal + random_in_unit_sphere();
-        return ray_color(Ray(rec.p, target - rec.p), obj, depth - 1) * 0.5;
+        return color(0.0, 0.0, 0.0);
     }
-    vec3 unit_dir = unit_vector(ray.direction());
-    double k = (unit_dir.y() + 1.0) * 0.5;
-    return color(1.0, 0.5, 0.35) * k + color(1.0, 1.0, 1.0) * (1.0 - k);
+
+    if (scene.hit(ray, 0.0000001, INF, hit))
+    {
+        Ray scattered;
+        color attenuation;
+        if (hit.material->scatter(ray, hit, attenuation, scattered))
+        {
+            return attenuation * ray_color(scattered, scene, depth - 1, skybox);
+        }
+        return color(0, 0, 0);
+    }
+    return skybox->get_color(ray.direction());
+
+
+
+
 }
 
 int main(int, char**){
@@ -74560,9 +74869,20 @@ int main(int, char**){
 
     const double aspect_ratio = (double) 640 / (double) 360;
 
+    auto mat_ground = make_shared<Lambertian>(GREEN);
+    auto mat_left = make_shared<Lambertian>(BLUE);
+    auto mat_center = make_shared<Metal>(LIGHT_GREY, 0.0);
+    auto mat_right = make_shared<Metal>(GREEN, 0.3);
+    auto mat_small = make_shared<Metal>(RED, 0.8);
+
+    auto sky_box = make_shared<SkyBox>(make_shared<Texture>(make_shared<Image>("./data/cubemap.png")));
+
     ObjectsList scene;
-    scene.add(make_shared<Sphere>(point3(0, 0, -2.0), 1.0));
-    scene.add(make_shared<Sphere>(point3(0, -101.0, -2), 100.0));
+    scene.add(make_shared<Sphere>(point3(0, 0, -3.0), 1.0, mat_center));
+    scene.add(make_shared<Sphere>(point3(-2.0, 0, -3.0), 1.0, mat_left));
+    scene.add(make_shared<Sphere>(point3(2.0, 0, -3.0), 1.0, mat_right));
+    scene.add(make_shared<Sphere>(point3(0, -101.0, -3), 100.0, mat_ground));
+    scene.add(make_shared<Sphere>(point3(1.0, -0.75, -1.5), 0.25, mat_small));
 
     Camera camera(120, aspect_ratio);
 
@@ -74573,14 +74893,14 @@ int main(int, char**){
         for (int j = 0; j < 640; ++j)
         {
             color pixel_color(0, 0, 0);
-            for (int s = 0; s < 1; ++s)
+            for (int s = 0; s < 50; ++s)
             {
                 double v = (i + rand_double()) / (360 - 1);
                 double u = (j + rand_double()) / (640 - 1);
                 Ray ray = camera.get_ray(u, v);
-                pixel_color += ray_color(ray, scene, 2);
+                pixel_color += ray_color(ray, scene, 50, sky_box);
             }
-            image.draw_pixel(360 - i - 1, j, pixel_color, 1);
+            image.draw_pixel(360 - i - 1, j, pixel_color, 50);
 
             pixel_count++;
             double progress = (int)((double) pixel_count / image_size * 100.0);

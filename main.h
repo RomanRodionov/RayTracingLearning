@@ -18,6 +18,7 @@
 #include "utility/objects_list.h"
 #include "utility/materials/lambertian.h"
 #include "utility/materials/metal.h"
+#include "utility/materials/dielectric.h"
 #include "utility/camera.h"
 #include "utility/common.h"
 #include "utility/texture.h"

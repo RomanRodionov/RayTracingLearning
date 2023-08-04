@@ -35,19 +35,22 @@ int main(int, char**){
     const double aspect_ratio = (double) IMG_WIDTH / (double) IMG_HEIGHT;
 
     auto mat_ground = make_shared<Lambertian>(SAND);
-    auto mat_left = make_shared<Lambertian>(BLUE);
+    auto glass1 = make_shared<Dielectric>(1.5);
+    auto glass2 = make_shared<Dielectric>(2.5);
     auto mat_center = make_shared<Metal>(LIGHT_GREY, 0.0);
-    auto mat_right = make_shared<Metal>(GREEN, 0.3);
+    auto mat_right = make_shared<Metal>(LIGHT_AQUA, 0.3);
     auto mat_small = make_shared<Metal>(RED, 0.8);
 
     auto sky_box = make_shared<SkyBox>(make_shared<Texture>(make_shared<Image>("./data/cubemap.png")));
 
     ObjectsList scene;
     scene.add(make_shared<Sphere>(point3(0, 0, -3.0), 1.0, mat_center));
-    //scene.add(make_shared<Sphere>(point3(-2.0, 0, -3.0), 1.0, mat_left));
-    //scene.add(make_shared<Sphere>(point3(2.0, 0, -3.0), 1.0, mat_right));
-    //scene.add(make_shared<Sphere>(point3(0, -101.0, -3), 100.0, mat_ground));
-    //scene.add(make_shared<Sphere>(point3(1.0, -0.75, -1.5), 0.25, mat_small));
+    scene.add(make_shared<Sphere>(point3(-2.0, 0, -3.0), 1.0, glass1));
+    scene.add(make_shared<Sphere>(point3(-2.0, 0, -3.0), -0.9, glass1));
+    scene.add(make_shared<Sphere>(point3(2.0, 0, -3.0), 1.0, mat_right));
+    scene.add(make_shared<Sphere>(point3(0, -101.0, -3), 100.0, mat_ground));
+    scene.add(make_shared<Sphere>(point3(1.0, -0.75, -1.5), 0.25, mat_small));
+    scene.add(make_shared<Sphere>(point3(-0.5, -0.6, -2), 0.4, glass2));
 
     Camera camera(FOV, aspect_ratio);
     

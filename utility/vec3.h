@@ -130,9 +130,18 @@ inline vec3 unit_vector(vec3 vec)
     return vec / vec.length();
 }
 
-vec3 reflect(const vec3& v, const vec3& n)
+vec3 reflect(const vec3& ray, const vec3& n)
 {
-    return v - n * 2 * dot(v, n);
+    return ray - n * 2 * dot(ray, n);
+}
+
+// eta_ratio = eta_from / eta_to
+vec3 refract(const vec3& ray, const vec3& n, double eta_ratio)
+{
+    double cos_theta = dot(-ray, n);
+    vec3 refr_perp = (ray + n * cos_theta) * eta_ratio;
+    vec3 refr_par = -n * sqrt(1 - refr_perp.square());
+    return refr_perp + refr_par;
 }
 
 vec3 random_in_unit_sphere()
