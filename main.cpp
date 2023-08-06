@@ -26,23 +26,44 @@ color ray_color(const Ray& ray, shared_ptr<Object> scene, int depth, shared_ptr<
     */
 }
 
-std::mutex mtx;
-
-void compute_pixel(int i, int j,
-                   int height, int width, 
-                   shared_ptr<Image> image,
+color compute_pixel(int i, int j,
+                   int height, int width,
                    const SceneData& data)
 {
     color pixel_color(0, 0, 0);
     for (int s = 0; s < SAMPLES_PER_PIXEL; ++s)
     {
-        double v = (i + rand_double()) / (IMG_HEIGHT - 1);
-        double u = (j + rand_double()) / (IMG_WIDTH - 1);
+        double v = (i + rand_double()) / (height - 1);
+        double u = (j + rand_double()) / (width - 1);
         Ray ray = data.camera->get_ray(u, v);
         pixel_color += ray_color(ray, data.scene, MAX_DEPTH, data.sky_box);
     }
+    return pixel_color;
+}
+
+std::mutex mtx;
+
+void compute_pixel_group(int y, int x,
+                   int height, int width, 
+                   shared_ptr<Image> image,
+                   const SceneData& data)
+{
+    std::vector<color> group_buffer;
+    for (int i = y; i < y + height; ++i)
+    {
+        for (int j = x; j < x + width; ++j)
+        {
+            group_buffer.push_back(compute_pixel(i, j, image->get_height(), image->get_width(), data));
+        }
+    }
     mtx.lock();
-    image->draw_pixel(IMG_HEIGHT - i - 1, j, pixel_color, SAMPLES_PER_PIXEL);
+    for (int i = y; i < y + height; ++i)
+    {
+        for (int j = x; j < x + width; ++j)
+        {
+            image->draw_pixel(image->get_height() - i - 1, j, group_buffer[(i - y) * width + j - x], SAMPLES_PER_PIXEL);
+        }
+    }
     mtx.unlock();
 }
 
@@ -76,33 +97,32 @@ int main(int, char**){
 
     shared_ptr<Camera> camera = make_shared<Camera>(LOOK_FROM, LOOK_AT, VIEW_UP, FOV, aspect_ratio, APERTURE, focus_dist);
     
-    SceneData scene_data = {scene, camera, sky_box};
+    SceneData scene_data = {scene, camera, sky_box};;
 
-    std::cout << "Rendering in progress: 000%";
-    int pixel_count = 0, image_size = IMG_HEIGHT * IMG_WIDTH;
+    ProgressBar bar(IMG_HEIGHT * IMG_WIDTH);
+    bar.print("Rendering in progress");
 
     std::thread threads[THREADS_NUM];
 
-    for (int i = 0; i < IMG_HEIGHT; ++i)
+    int group_width = min(max(image->get_width() / THREADS_NUM, MIN_GROUP_WIDTH), MAX_GROUP_WIDTH);
+    int group_height = min(max(group_width, MIN_GROUP_HEIGHT), MAX_GROUP_HEIGHT);
+
+    for (int i = 0; i < IMG_HEIGHT / group_height + 1 && min(IMG_HEIGHT - i * group_height, group_height) > 0; ++i)
     {
-        for (int j = 0; j < IMG_WIDTH / THREADS_NUM + 1; ++j)
+        int actual_group_height = min(IMG_HEIGHT - i * group_height, group_height);
+        for (int j = 0; j < (IMG_WIDTH / group_width + 1) / THREADS_NUM + 1; ++j)
         {
-            for (int t = 0; t < THREADS_NUM && j * THREADS_NUM + t < IMG_WIDTH; ++t)
+            for (int t = 0; t < THREADS_NUM && (j * THREADS_NUM + t) * group_width < IMG_WIDTH; ++t)
             {
-                threads[t] = std::thread(compute_pixel, i, j * THREADS_NUM + t, IMG_HEIGHT, IMG_WIDTH, image, scene_data);
+                int actual_group_width = min(group_width, IMG_WIDTH - (j * THREADS_NUM + t) * group_width);
+                threads[t] = std::thread(compute_pixel_group, i * group_height, (j * THREADS_NUM + t) * group_width, actual_group_height, actual_group_width, image, scene_data);
+                bar.increase(actual_group_height * actual_group_width);
             }
-            for (int t = 0; t < THREADS_NUM && j * THREADS_NUM + t < IMG_WIDTH; ++t)
+            for (int t = 0; t < THREADS_NUM && (j * THREADS_NUM + t) * group_width < IMG_WIDTH; ++t)
             {
                 threads[t].join();
-                pixel_count++;
             }
-            
-            double progress = (int)((double) pixel_count / image_size * 100.0);
-            std::ostringstream ss;
-            ss << std::setw(3) << std::setfill('0') << progress;
-            std::string progress_str = ss.str();
-            std::cout << "\b\b\b\b" << progress_str << "%";
-            
+            bar.update();
         }
     }
     image->save_to_png(filename);

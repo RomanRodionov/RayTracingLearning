@@ -10,9 +10,6 @@
 #include <thread>
 #include <mutex>
 
-#include <sstream>
-#include <iomanip>
-
 #include "utility/vec3.h"
 #include "utility/color.h"
 #include "utility/image.h"
@@ -26,12 +23,13 @@
 #include "utility/common.h"
 #include "utility/texture.h"
 #include "utility/skybox.h"
+#include "utility/progress_bar.h"
 
 #define OUTPUT_FILE "output.png"
 #define SKYBOX_FILE "./data/cubemap.png"
-#define IMG_WIDTH (640 * 3)
-#define IMG_HEIGHT (360 * 3)
-#define SAMPLES_PER_PIXEL 300
+#define IMG_WIDTH (640)
+#define IMG_HEIGHT (360)
+#define SAMPLES_PER_PIXEL 150
 #define FOV 90
 #define MAX_DEPTH 50
 #define LOOK_FROM point3(-2, 1, 0.5)
@@ -39,6 +37,10 @@
 #define VIEW_UP point3(0, 1, 0)
 #define APERTURE 0.1
 #define THREADS_NUM 4
+#define MIN_GROUP_HEIGHT 50
+#define MIN_GROUP_WIDTH 50
+#define MAX_GROUP_HEIGHT 100
+#define MAX_GROUP_WIDTH 100
 
 struct SceneData
 {
@@ -47,6 +49,25 @@ struct SceneData
     shared_ptr<SkyBox> sky_box;
 };
 
+inline int min(int a, int b)
+{
+    return a > b ? b : a;
+}
+
+inline int max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
 color ray_color(const Ray& ray, const Object& obj, int depth, shared_ptr<SkyBox> skybox);
+
+color compute_pixel(int i, int j,
+                   int height, int width,
+                   const SceneData& data);
+
+void compute_pixel_group(int y, int x,
+                   int height, int width, 
+                   shared_ptr<Image> image,
+                   const SceneData& data);
 
 #endif
