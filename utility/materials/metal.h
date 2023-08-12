@@ -17,7 +17,7 @@ class Metal : public Material
         ) const override
         {
             vec3 reflected = reflect(unit_vector(fall_ray.direction()), hit.normal);
-            scattered = Ray(hit.p, reflected + random_in_unit_sphere() * fuzz);
+            scattered = Ray(hit.p, reflected + random_in_unit_sphere() * fuzz, fall_ray.time());
             attenuation = albedo;
             return (dot(scattered.direction(), hit.normal) > 0);
         }

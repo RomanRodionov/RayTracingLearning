@@ -40,11 +40,10 @@ class Image
         {
             return stbi_write_png(filename.c_str(), width, height, CHANNELS, data.data(), width * CHANNELS);
         }
-        void draw_pixel(int row, int col, color color, int samples_per_pixel)
+        void draw_pixel(int row, int col, color color)
         {
             assert(row >= 0 && row < height);
             assert(col >= 0 && col < width);
-            color /= samples_per_pixel;
             double r = color[0];
             double g = color[1];
             double b = color[2];

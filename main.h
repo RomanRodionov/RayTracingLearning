@@ -7,8 +7,9 @@
 #include <string>
 #include <limits>
 
-#include <thread>
-#include <mutex>
+//#include <thread>
+//#include <mutex>
+#include <omp.h>
 
 #include "utility/vec3.h"
 #include "utility/color.h"
@@ -29,18 +30,14 @@
 #define SKYBOX_FILE "./data/cubemap.png"
 #define IMG_WIDTH (640)
 #define IMG_HEIGHT (360)
-#define SAMPLES_PER_PIXEL 150
-#define FOV 90
+#define SAMPLES_PER_PIXEL 100
 #define MAX_DEPTH 50
-#define LOOK_FROM point3(-2, 1, 0.5)
-#define LOOK_AT point3(0, 0,-3)
-#define VIEW_UP point3(0, 1, 0)
+#define FOV 60
+#define LOOK_FROM point3(13,2,3)
+#define LOOK_AT point3(0,0,0)
+#define VIEW_UP vec3(0,1,0)
 #define APERTURE 0.1
 #define THREADS_NUM 4
-#define MIN_GROUP_HEIGHT 50
-#define MIN_GROUP_WIDTH 50
-#define MAX_GROUP_HEIGHT 100
-#define MAX_GROUP_WIDTH 100
 
 struct SceneData
 {
@@ -62,11 +59,6 @@ inline int max(int a, int b)
 color ray_color(const Ray& ray, const Object& obj, int depth, shared_ptr<SkyBox> skybox);
 
 color compute_pixel(int i, int j,
-                   int height, int width,
-                   const SceneData& data);
-
-void compute_pixel_group(int y, int x,
-                   int height, int width, 
                    shared_ptr<Image> image,
                    const SceneData& data);
 

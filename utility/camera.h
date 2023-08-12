@@ -43,7 +43,10 @@ class Camera
             vec3 rd = random_in_unit_disk() * lens_radius;
             vec3 offset = u * rd.x() + v * rd.y();
             vec3 shifted_origin = origin + offset;
-            return Ray(shifted_origin, ll_corner + horizontal * u_p + vertical * v_p - shifted_origin);
+            vec3 ray_dir = ll_corner + horizontal * u_p + vertical * v_p - shifted_origin;
+            double ray_time = rand_double();
+
+            return Ray(shifted_origin, ray_dir, ray_time);
         }
 };
 
