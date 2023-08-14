@@ -6,8 +6,9 @@
 class Lambertian : public Material
 {
     public:
-        color albedo;
-        Lambertian(const color& a) : albedo(a) {}
+        shared_ptr<Texture> albedo;
+        Lambertian(const shared_ptr<Texture>& _texture) : albedo(_texture) {}
+        Lambertian(const color& _color) : albedo(make_shared<SolidColor>(_color)) {}
         virtual bool scatter(
             const Ray& fall_ray, 
             const hit_record& hit, 
@@ -21,7 +22,7 @@ class Lambertian : public Material
                 scatter_direction = hit.normal;
             }
             scattered = Ray(hit.p, scatter_direction, fall_ray.time());
-            attenuation = albedo;
+            attenuation = albedo->value(hit.u, hit.v, hit.p);
             return true;
         }
 };

@@ -1,7 +1,22 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <omp.h>
+
 #include "common.h"
+#include "ray.h"
+#include "skybox.h"
+#include "object.h"
+#include "objects_list.h"
+#include "progress_bar.h"
+
+class Camera;
+
+struct SceneData
+{
+    shared_ptr<ObjectsList> scene;
+    shared_ptr<SkyBox> sky_box;
+};
 
 class Camera
 {
@@ -47,6 +62,68 @@ class Camera
             double ray_time = rand_double();
 
             return Ray(shifted_origin, ray_dir, ray_time);
+        }
+    private:
+        color ray_color(const Ray& ray, shared_ptr<Object> scene, int depth, shared_ptr<SkyBox> skybox)
+        {
+            hit_record hit;
+
+            if (depth <= 0) 
+            {
+                return color(0.0, 0.0, 0.0);
+            }
+
+            if (scene->hit(ray, Interval(EPS, INF), hit))
+            {
+                Ray scattered;
+                color attenuation;
+                if (hit.material->scatter(ray, hit, attenuation, scattered))
+                {
+                    return attenuation * ray_color(scattered, scene, depth - 1, skybox);
+                }
+                return color(0, 0, 0);
+            }
+            return skybox->get_color(ray.direction());
+        }
+        color compute_pixel(int i, int j,
+                    shared_ptr<Image> image,
+                    const SceneData& data,
+                    int samples_per_pixel)
+        {
+            color pixel_color(0, 0, 0);
+            int width = image->get_width(), height = image->get_height();
+            for (int s = 0; s < samples_per_pixel; ++s)
+            {
+                double v = (i + rand_double()) / (height - 1);
+                double u = (j + rand_double()) / (width - 1);
+                Ray ray = get_ray(u, v);
+                pixel_color += Camera::ray_color(ray, data.scene, MAX_DEPTH, data.sky_box);
+            }
+            pixel_color /= samples_per_pixel;
+            return pixel_color;
+        }
+    public:
+        void render(shared_ptr<Image> image, const SceneData& scene_data)
+        {
+            int height = image->get_height();
+            int width = image->get_width();
+            ProgressBar bar(height * width);
+            bar.print("Rendering in progress");
+
+            for (int i = 0; i < height; ++i)
+            {
+                #pragma omp parallel for
+                for (int j = 0; j < width; ++j)
+                {
+                    color pixel = compute_pixel(i, j, image, scene_data, SAMPLES_PER_PIXEL);
+                    #pragma omp critical
+                    {
+                        image->draw_pixel(height - i - 1, j, pixel);
+                    }  
+                }
+                bar.increase(width);
+                bar.update();
+            }
         }
 };
 

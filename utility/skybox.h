@@ -1,27 +1,30 @@
 #ifndef SKYBOX_H
-#define SKYBOX
+#define SKYBOX_H
 
 #include "common.h"
+#include "image_texture.h"
 #include "texture.h"
-#include "vec3.h"
 
 class SkyBox
 {
     public:
-        shared_ptr<Texture> left;
-        shared_ptr<Texture> front;
-        shared_ptr<Texture> right;
-        shared_ptr<Texture> back;
-        shared_ptr<Texture> top;
-        shared_ptr<Texture> bottom;
+        shared_ptr<ImageTexture> left;
+        shared_ptr<ImageTexture> front;
+        shared_ptr<ImageTexture> right;
+        shared_ptr<ImageTexture> back;
+        shared_ptr<ImageTexture> top;
+        shared_ptr<ImageTexture> bottom;
+        shared_ptr<Texture> texture;
+        bool cubemap;
         std::pair<double, double> size;
         int width, height;
         SkyBox() {}
-        SkyBox(const shared_ptr<Texture>& tex) 
+        SkyBox(const shared_ptr<ImageTexture>& tex) : cubemap(true)
         {
             load_texture(tex);
         }
-        void load_texture(const shared_ptr<Texture>& tex)
+        SkyBox(const shared_ptr<Texture>& tex) : texture(tex), cubemap(false) {}
+        void load_texture(const shared_ptr<ImageTexture>& tex)
         {
             std::pair<double, double> size = {1.0 / 4.0, 1.0 / 3.0};
             left = tex->crop({0, size.second}, size);
@@ -35,57 +38,61 @@ class SkyBox
         }
         color get_color(const vec3& look_at_original)
         {
-            const double u_error = 1.0 - 2.0 / width;
-            const double v_error = 1.0 - 2.0 / height;
-            const double edge = 1 / sqrt(3);
-            vec3 look_at = unit_vector(look_at_original);
-            if (fabs(look_at.y()) > edge)
+            if (cubemap)
             {
-                look_at *= edge / fabs(look_at.y());
-            }
-            double x = look_at.x();
-            double y = look_at.y();
-            double z = look_at.z();
-            double u, v;
-            if (fabs(x) >= edge || fabs(z) >= edge)
-            {
-                if (fabs(z) >= fabs(x))
+                const double u_error = 1.0 - 2.0 / width;
+                const double v_error = 1.0 - 2.0 / height;
+                const double edge = 1 / sqrt(3);
+                vec3 look_at = unit_vector(look_at_original);
+                if (fabs(look_at.y()) > edge)
                 {
-                    if (z < 0)
+                    look_at *= edge / fabs(look_at.y());
+                }
+                double x = look_at.x();
+                double y = look_at.y();
+                double z = look_at.z();
+                double u, v;
+                if (fabs(x) >= edge || fabs(z) >= edge)
+                {
+                    if (fabs(z) >= fabs(x))
                     {
-                        u = 0.5 - x / z / 2 * u_error;
-                        v = 0.5 + y / z / 2 * v_error;
-                        return front->get_color(u, v);
+                        if (z < 0)
+                        {
+                            u = 0.5 - x / z / 2 * u_error;
+                            v = 0.5 + y / z / 2 * v_error;
+                            return front->get_color(u, v);
+                        }
+                        else
+                        {
+                            u = 0.5 - x / z / 2 * u_error;
+                            v = 0.5 - y / z / 2 * v_error;
+                            return back->get_color(u, v);
+                        }
+                    }
+                    if (x > 0)
+                    {
+                        u = 0.5 + z / x / 2 * u_error;
+                        v = 0.5 - y / x / 2 * v_error;
+                        return right->get_color(u, v);
                     }
                     else
                     {
-                        u = 0.5 - x / z / 2 * u_error;
-                        v = 0.5 - y / z / 2 * v_error;
-                        return back->get_color(u, v);
+                        u = 0.5 + z / x / 2 * u_error;
+                        v = 0.5 + y / x / 2 * v_error;
+                        return left->get_color(u, v);
                     }
                 }
-                if (x > 0)
+                if (y > 0)
                 {
-                    u = 0.5 + z / x / 2 * u_error;
-                    v = 0.5 - y / x / 2 * v_error;
-                    return right->get_color(u, v);
+                    u = 0.5 + x / y / 2 * u_error;
+                    v = 0.5 - z / y / 2 * v_error;
+                    return top->get_color(u, v);
                 }
-                else
-                {
-                    u = 0.5 + z / x / 2 * u_error;
-                    v = 0.5 + y / x / 2 * v_error;
-                    return left->get_color(u, v);
-                }
-            }
-            if (y > 0)
-            {
-                u = 0.5 + x / y / 2 * u_error;
+                u = 0.5 - x / y / 2 * u_error;
                 v = 0.5 - z / y / 2 * v_error;
-                return top->get_color(u, v);
+                return bottom->get_color(u, v);
             }
-            u = 0.5 - x / y / 2 * u_error;
-            v = 0.5 - z / y / 2 * v_error;
-            return bottom->get_color(u, v);
+            return texture->value(0.0, 0.0, look_at_original);
         }
 };
 

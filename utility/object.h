@@ -1,9 +1,8 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include "common.h"
 #include "ray.h"
-#include "vec3.h"
-#include "interval.h"
 #include "aabb.h"
 
 #include <iostream>
@@ -15,6 +14,7 @@ struct hit_record
     point3 p;
     vec3 normal;
     double t;
+    double u, v;
     bool front_face;
     shared_ptr<Material> material;
     inline void set_face_normal(const Ray& ray, const vec3& outward_normal)

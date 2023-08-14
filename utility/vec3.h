@@ -4,8 +4,6 @@
 #include <cmath>
 #include <iostream>
 
-#include "common.h"
-
 class vec3
 {
     private:
@@ -13,9 +11,9 @@ class vec3
     public:
         vec3() : data{0, 0, 0} {}
         vec3(double e0, double e1, double e2) : data{e0, e1, e2} {}
-        double& x() {return data[0];}
-        double& y() {return data[1];}
-        double& z() {return data[2];}
+        double x() const {return data[0];}
+        double y() const {return data[1];}
+        double z() const {return data[2];}
         vec3 operator-() const {return vec3(-data[0], -data[1], -data[2]);}
         double& operator[](int idx) {return data[idx];}
         double operator[](int idx) const {return data[idx];}

@@ -10,9 +10,7 @@
 #include <array>
 #include <string>
 
-#include "color.h"
 #include "common.h"
-#include "interval.h"
 
 inline double linear_to_gamma(double lin_comp)
 {

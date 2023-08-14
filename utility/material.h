@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "object.h"
-#include "vec3.h"
+#include "texture.h"
 
 class Material
 {

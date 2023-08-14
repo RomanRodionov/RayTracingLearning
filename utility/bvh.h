@@ -4,7 +4,6 @@
 #include "common.h"
 #include "object.h"
 #include "objects_list.h"
-#include "ray.h"
 #include "aabb.h"
 
 class bvh_node : public Object

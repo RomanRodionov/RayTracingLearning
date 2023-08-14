@@ -1,67 +1,52 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <cmath>
-#include <vector>
-#include <iostream>
-
 #include "common.h"
-#include "image.h"
-#include "color.h"
 
-class Texture
+class Texture 
 {
     public:
-        std::vector<color> data;
-        int width, height;
-        Texture() : width(0), height(0) {}
-        Texture(const shared_ptr<Image>& img)
+        virtual ~Texture() = default;
+        virtual color value(double u, double v, const point3& p) const = 0;
+};
+
+class SolidColor : public Texture
+{
+    private:
+        color color_value;
+    public:
+        SolidColor(color _color) : color_value(_color) {}
+        SolidColor(double red, double green, double blue) : SolidColor(color(red, green ,blue)) {}
+        
+        color value(double u, double v, const point3& p) const override
         {
-            load(img);
+            return color_value;
         }
-        void load(const shared_ptr<Image>& img)
+};
+
+class CheckerTexture : public Texture
+{
+    private:
+        double inv_scale;
+        shared_ptr<Texture> even;
+        shared_ptr<Texture> odd;
+    public:
+        CheckerTexture(double _scale, shared_ptr<Texture> _even, shared_ptr<Texture> _odd) :
+            inv_scale(1.0 / _scale), even(_even), odd(_odd) {}
+        
+        CheckerTexture(double _scale, color _color1, color _color2) :
+            inv_scale(1.0 / _scale), even(make_shared<SolidColor>(_color1)),
+            odd(make_shared<SolidColor>(_color2)) {}
+
+        color value(double u, double v, const point3& p) const override
         {
-            width = img->get_width();
-            height = img->get_height();
-            data.clear();
-            for (int row = 0; row < height; ++row)
-            {
-                for (int col = 0; col < width; ++col)
-                {
-                    data.push_back(img->get_color(row, col));
-                }
-            }
-        }
-        shared_ptr<Texture> crop(const std::pair<double, double>& pos, const std::pair<double, double>& size)
-        {
-            auto new_tex = make_shared<Texture>();
-            int u = pos.first * width, v = pos.second * height, w = size.first * width, h = size.second * height;
-            for (int i = v; i < v + h; ++i)
-            {
-                for (int j = u; j < u + w; ++j)
-                {
-                    new_tex->data.push_back(data[i * width + j]);
-                }
-            }
-            new_tex->width = w;
-            new_tex->height = h;
-            return new_tex;
-        }
-        color get_color(double u_orig, double v_orig) const
-        {
-            double temp;
-            double u = (modf(u_orig, &temp) + 1.0) * width - 0.5;
-            double v = (modf(v_orig, &temp) + 1.0) * height - 0.5;
-            double u_alpha = modf(u + 1.0, &temp);
-            double v_alpha = modf(v + 1.0, &temp);
-            int ul = (int) (u + width) % width;
-            int ur = (ul + 1) % width;
-            int vu = (int) (v + height) % height;
-            int vl = (vu + 1) % height;
-            return data[(vu * width) + ul] * (1 - u_alpha) * (1 - v_alpha) +
-                   data[(vu * width) + ur] * u_alpha * (1 - v_alpha) +
-                   data[(vl * width) + ul] * (1 - u_alpha) * v_alpha +
-                   data[(vl * width) + ur] * u_alpha * v_alpha;
+            int xInt = static_cast<int>(std::floor(inv_scale * p.x()));
+            int yInt = static_cast<int>(std::floor(inv_scale * p.y()));
+            int zInt = static_cast<int>(std::floor(inv_scale * p.z()));
+
+            bool isEven = (xInt + yInt + zInt) % 2 == 0;
+
+            return isEven ? even->value(u, v, p) : odd->value(u, v, p);
         }
 };
 
