@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 #include <cstdlib>
+#include <algorithm>
 
 using std::shared_ptr;
 using std::make_shared;
@@ -30,11 +31,19 @@ inline double rand_double(double min, double max)
     return min + (max - min) * rand_double();
 }
 
-inline double clamp(double x, double min, double max)
+inline double random_int(int min, int max)
 {
-    if (x < min) {return min;}
-    if (x > max) {return max;}
-    return x;
+    return min + rand() % (max - min + 1);
+}
+
+inline int min(int a, int b)
+{
+    return a > b ? b : a;
+}
+
+inline int max(int a, int b)
+{
+    return a > b ? a : b;
 }
 
 #endif

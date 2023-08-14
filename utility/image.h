@@ -12,6 +12,12 @@
 
 #include "color.h"
 #include "common.h"
+#include "interval.h"
+
+inline double linear_to_gamma(double lin_comp)
+{
+    return sqrt(lin_comp);
+}
 
 class Image
 {
@@ -44,12 +50,13 @@ class Image
         {
             assert(row >= 0 && row < height);
             assert(col >= 0 && col < width);
-            double r = color[0];
-            double g = color[1];
-            double b = color[2];
-            data[(width * row + col) * CHANNELS]     = static_cast<uchar> (MAX_COLOR * clamp(r, 0.0, 1.0));
-            data[(width * row + col) * CHANNELS + 1] = static_cast<uchar> (MAX_COLOR * clamp(g, 0.0, 1.0));
-            data[(width * row + col) * CHANNELS + 2] = static_cast<uchar> (MAX_COLOR * clamp(b, 0.0, 1.0));
+            double r = linear_to_gamma(color[0]);
+            double g = linear_to_gamma(color[1]);
+            double b = linear_to_gamma(color[2]);
+            static const Interval intensity(0.000, 0.999);
+            data[(width * row + col) * CHANNELS]     = static_cast<uchar> (MAX_COLOR * intensity.clamp(r));
+            data[(width * row + col) * CHANNELS + 1] = static_cast<uchar> (MAX_COLOR * intensity.clamp(g));
+            data[(width * row + col) * CHANNELS + 2] = static_cast<uchar> (MAX_COLOR * intensity.clamp(b));
         }
         inline color get_color(int row, int col) const
         {

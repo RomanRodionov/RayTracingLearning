@@ -9,7 +9,7 @@ color ray_color(const Ray& ray, shared_ptr<Object> scene, int depth, shared_ptr<
         return color(0.0, 0.0, 0.0);
     }
 
-    if (scene->hit(ray, EPS, INF, hit))
+    if (scene->hit(ray, Interval(EPS, INF), hit))
     {
         Ray scattered;
         color attenuation;
@@ -56,10 +56,10 @@ int main(int, char**){
 
     auto sky_box = make_shared<SkyBox>(make_shared<Texture>(make_shared<Image>(SKYBOX_FILE)));
 
-    shared_ptr<ObjectsList> scene = make_shared<ObjectsList>();
+    ObjectsList scene = ObjectsList();
 
     auto ground_material = make_shared<Lambertian>(color(0.5, 0.5, 0.5));
-    scene->add(make_shared<Sphere>(point3(0,-1000,0), 1000, ground_material));
+    scene.add(make_shared<Sphere>(point3(0,-1000,0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
@@ -74,36 +74,36 @@ int main(int, char**){
                     auto albedo = color::random() * color::random();
                     sphere_material = make_shared<Lambertian>(albedo);
                     point3 center2 = center + vec3(0, rand_double(0, 0.5), 0);
-                    scene->add(make_shared<Sphere>(center, center2, 0.2, sphere_material));
+                    scene.add(make_shared<Sphere>(center, center2, 0.2, sphere_material));
                 } else if (choose_mat < 0.75) {
                     // metal
                     auto albedo = color::random(0.5, 1);
                     auto fuzz = rand_double(0, 0.5);
                     sphere_material = make_shared<Metal>(albedo, fuzz);
-                    scene->add(make_shared<Sphere>(center, 0.2, sphere_material));
+                    scene.add(make_shared<Sphere>(center, 0.2, sphere_material));
                 } else {
                     // glass
                     sphere_material = make_shared<Dielectric>(1.5);
-                    scene->add(make_shared<Sphere>(center, 0.2, sphere_material));
+                    scene.add(make_shared<Sphere>(center, 0.2, sphere_material));
                 }
             }
         }
     }
 
     auto material1 = make_shared<Dielectric>(1.5);
-    scene->add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
+    scene.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
 
     auto material2 = make_shared<Lambertian>(color(0.4, 0.2, 0.1));
-    scene->add(make_shared<Sphere>(point3(-4, 1, 0), 1.0, material2));
+    scene.add(make_shared<Sphere>(point3(-4, 1, 0), 1.0, material2));
 
     auto material3 = make_shared<Metal>(color(0.7, 0.6, 0.5), 0.0);
-    scene->add(make_shared<Sphere>(point3(4, 1, 0), 1.0, material3));
+    scene.add(make_shared<Sphere>(point3(4, 1, 0), 1.0, material3));
+
+    shared_ptr<ObjectsList> world = make_shared<ObjectsList>(ObjectsList(make_shared<bvh_node>(scene)));
 
     double focus_dist = (LOOK_FROM - LOOK_AT).length();
-
     shared_ptr<Camera> camera = make_shared<Camera>(LOOK_FROM, LOOK_AT, VIEW_UP, FOV, aspect_ratio, APERTURE, focus_dist);
-    
-    SceneData scene_data = {scene, camera, sky_box};
+    SceneData scene_data = {world, camera, sky_box};
 
     ProgressBar bar(height * width);
     bar.print("Rendering in progress");

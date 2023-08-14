@@ -13,23 +13,34 @@ class Sphere : public Object
         shared_ptr<Material> material;
         bool is_moving;
         vec3 move;
+        aabb bbox;
         point3 get_center(double time) const
         {
             return origin + move * time;
         }
     public:
         Sphere() {};
-        Sphere(point3 c, double r, shared_ptr<Material> m) 
-            : origin(c), radius(r), material(m), is_moving(false) {}
-        Sphere(point3 c1, point3 c2, double r, shared_ptr<Material> m) 
-            : origin(c1), radius(r), material(m), is_moving(true) 
+        Sphere(point3 _center, double _radius, shared_ptr<Material> _material) 
+            : origin(_center), radius(_radius), material(_material), is_moving(false) 
         {
-            move = c2 - c1;
+            auto rvec = vec3(_radius, radius, radius);
+            bbox = aabb(_center - rvec, _center + rvec);
         }
-        virtual bool hit(const Ray& ray, double t_min, double t_max, hit_record& rec) const override;
+        Sphere(point3 _center1, point3 _center2, double _radius, shared_ptr<Material> _material) 
+            : origin(_center1), radius(_radius), material(_material), is_moving(true) 
+        {
+            auto rvec = vec3(_radius, radius, radius);
+            aabb bbox1 = aabb(_center1 - rvec, _center1 + rvec);
+            aabb bbox2 = aabb(_center2 - rvec, _center2 + rvec);
+            bbox = aabb(bbox1, bbox2);
+
+            move = _center2 - _center1;
+        }
+        aabb bounding_box() const override { return bbox;}
+        virtual bool hit(const Ray& ray, Interval ray_t, hit_record& rec) const override;
 };
 
-bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_record& rec) const
+bool Sphere::hit(const Ray& ray, Interval ray_t, hit_record& rec) const
 {
     point3 center = is_moving ? get_center(ray.time()) : origin;
     vec3 oc = ray.origin() - center;
@@ -40,11 +51,11 @@ bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_record& rec) co
     if (discr < 0) {return false;}
     double sqrtd = sqrt(discr);
     double root = (-hb - sqrtd) / a;
-    if (root > t_max) {return false;}
-    if (root <= t_min)
+    if (root > ray_t.max) {return false;}
+    if (root <= ray_t.min)
     {
         root = (-hb + sqrtd) / a;
-        if (root <= t_min || root > t_max) {return false;}
+        if (root <= ray_t.min || root > ray_t.max) {return false;}
     }
 
     rec.t = root;

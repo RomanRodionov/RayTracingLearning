@@ -12,6 +12,7 @@
 #include <omp.h>
 
 #include "utility/vec3.h"
+#include "utility/interval.h"
 #include "utility/color.h"
 #include "utility/image.h"
 #include "utility/ray.h"
@@ -25,14 +26,15 @@
 #include "utility/texture.h"
 #include "utility/skybox.h"
 #include "utility/progress_bar.h"
+#include "utility/bvh.h"
 
 #define OUTPUT_FILE "output.png"
 #define SKYBOX_FILE "./data/cubemap.png"
 #define IMG_WIDTH (640)
 #define IMG_HEIGHT (360)
-#define SAMPLES_PER_PIXEL 100
+#define SAMPLES_PER_PIXEL 200
 #define MAX_DEPTH 50
-#define FOV 60
+#define FOV 40
 #define LOOK_FROM point3(13,2,3)
 #define LOOK_AT point3(0,0,0)
 #define VIEW_UP vec3(0,1,0)
@@ -45,16 +47,6 @@ struct SceneData
     shared_ptr<Camera> camera;
     shared_ptr<SkyBox> sky_box;
 };
-
-inline int min(int a, int b)
-{
-    return a > b ? b : a;
-}
-
-inline int max(int a, int b)
-{
-    return a > b ? a : b;
-}
 
 color ray_color(const Ray& ray, const Object& obj, int depth, shared_ptr<SkyBox> skybox);
 
