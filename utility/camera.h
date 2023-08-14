@@ -52,6 +52,14 @@ class Camera
 
             lens_radius = aperture / 2;
         }
+        Camera(point3 look_from = LOOK_FROM,
+               point3 look_at = LOOK_AT,
+               vec3 vup = VIEW_UP,
+               double fov = FOV,
+               double aspect_ratio = ASPECT_RATIO,
+               double aperture = APERTURE)
+            : Camera(look_from, look_at, vup, fov, aspect_ratio, aperture,
+            (look_at - look_from).length()) {}
 
         Ray get_ray(double u_p, double v_p) const
         {

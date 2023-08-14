@@ -2,17 +2,12 @@
 
 void random_spheres(shared_ptr<Image>& image)
 {
-
     int height = image->get_height(), width = image->get_width();
-
-    const double aspect_ratio = (double) width / (double) height;
-
-    auto checker = make_shared<CheckerTexture>(0.3, BROWN, LIGHT_GREY);
-
-    auto sky_box = make_shared<SkyBox>(checker);
+    auto sky_box = make_shared<SkyBox>(make_shared<ImageTexture>(make_shared<Image>(SKYBOX_FILE)));
 
     ObjectsList scene = ObjectsList();
 
+    auto checker = make_shared<CheckerTexture>(0.3, BROWN, LIGHT_GREY);
     auto ground_material = make_shared<Lambertian>(checker);
     scene.add(make_shared<Sphere>(point3(0,-1000,0), 1000, ground_material));
 
@@ -56,8 +51,7 @@ void random_spheres(shared_ptr<Image>& image)
 
     shared_ptr<ObjectsList> world = make_shared<ObjectsList>(ObjectsList(make_shared<bvh_node>(scene)));
 
-    double focus_dist = (LOOK_FROM - LOOK_AT).length();
-    shared_ptr<Camera> camera = make_shared<Camera>(LOOK_FROM, LOOK_AT, VIEW_UP, FOV, aspect_ratio, APERTURE, focus_dist);
+    shared_ptr<Camera> camera = make_shared<Camera>();
     SceneData scene_data = {world, sky_box};
 
     camera->render(image, scene_data);

@@ -36,6 +36,14 @@ class Sphere : public Object
 
             move = _center2 - _center1;
         }
+        static void get_sphere_uv(const point3& p, double& u, double& v)
+        {
+            double theta = acos(-p.y());
+            double phi = atan2(-p.z(), p.x()) + PI;
+
+            u = phi / (2 * PI);
+            v = theta / PI;
+        }
         aabb bounding_box() const override { return bbox;}
         virtual bool hit(const Ray& ray, Interval ray_t, hit_record& rec) const override;
 };
@@ -62,6 +70,7 @@ bool Sphere::hit(const Ray& ray, Interval ray_t, hit_record& rec) const
     rec.p = ray.at(root);
     vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(ray, outward_normal);
+    get_sphere_uv(outward_normal, rec.u, rec.v);
     rec.material = material;
 
     return true;

@@ -24,6 +24,25 @@ class SolidColor : public Texture
         }
 };
 
+class GradientTexture : public Texture
+{
+    private:
+        shared_ptr<Texture> first;
+        shared_ptr<Texture> second;
+    public:
+        GradientTexture(shared_ptr<Texture> _first, shared_ptr<Texture> _second) :
+            first(_first), second(_second) {}
+        
+        GradientTexture(color _first, color _second) :
+            first(make_shared<SolidColor>(_first)),
+            second(make_shared<SolidColor>(_second)) {}
+
+        color value(double u, double v, const point3& p) const override
+        {
+            return first->value(u, v, p) * (1.0 - v) + second->value(u, v, p) * v;
+        }
+};
+
 class CheckerTexture : public Texture
 {
     private:
