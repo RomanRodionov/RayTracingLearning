@@ -99,7 +99,7 @@ class Camera
                     int samples_per_pixel)
         {
             color pixel_color(0, 0, 0);
-            int width = image->get_width(), height = image->get_height();
+            int width = image->width(), height = image->height();
             for (int s = 0; s < samples_per_pixel; ++s)
             {
                 double v = (i + rand_double()) / (height - 1);
@@ -113,8 +113,8 @@ class Camera
     public:
         void render(shared_ptr<Image> image, const SceneData& scene_data)
         {
-            int height = image->get_height();
-            int width = image->get_width();
+            int height = image->height();
+            int width = image->width();
             ProgressBar bar(height * width);
             bar.print("Rendering in progress");
 

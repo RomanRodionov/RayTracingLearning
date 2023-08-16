@@ -8,20 +8,20 @@
 #include "common.h"
 #include "image.h"
 
-class ImageTexture
+class MyImageTexture
 {
     public:
         std::vector<color> data;
         int width, height;
-        ImageTexture() : width(0), height(0) {}
-        ImageTexture(const shared_ptr<Image>& img)
+        MyImageTexture() : width(0), height(0) {}
+        MyImageTexture(const shared_ptr<Image>& img)
         {
             load(img);
         }
         void load(const shared_ptr<Image>& img)
         {
-            width = img->get_width();
-            height = img->get_height();
+            width = img->width();
+            height = img->height();
             data.clear();
             for (int row = 0; row < height; ++row)
             {
@@ -31,9 +31,9 @@ class ImageTexture
                 }
             }
         }
-        shared_ptr<ImageTexture> crop(const std::pair<double, double>& pos, const std::pair<double, double>& size)
+        shared_ptr<MyImageTexture> crop(const std::pair<double, double>& pos, const std::pair<double, double>& size)
         {
-            auto new_tex = make_shared<ImageTexture>();
+            auto new_tex = make_shared<MyImageTexture>();
             int u = pos.first * width, v = pos.second * height, w = size.first * width, h = size.second * height;
             for (int i = v; i < v + h; ++i)
             {

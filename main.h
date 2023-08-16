@@ -16,7 +16,7 @@
 #include "utility/materials/metal.h"
 #include "utility/materials/dielectric.h"
 #include "utility/camera.h"
-#include "utility/image_texture.h"
+#include "utility/my_image_texture.h"
 #include "utility/skybox.h"
 #include "utility/progress_bar.h"
 #include "utility/bvh.h"

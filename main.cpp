@@ -2,13 +2,15 @@
 
 void random_spheres(shared_ptr<Image>& image)
 {
-    int height = image->get_height(), width = image->get_width();
-    auto sky_box = make_shared<SkyBox>(make_shared<ImageTexture>(make_shared<Image>(SKYBOX_FILE)));
+    int height = image->height(), width = image->width();
+    auto sky_box = make_shared<SkyBox>(make_shared<MyImageTexture>(make_shared<Image>(SKYBOX_FILE)));
 
     ObjectsList scene = ObjectsList();
 
     auto checker = make_shared<CheckerTexture>(0.3, BROWN, LIGHT_GREY);
-    auto ground_material = make_shared<Lambertian>(checker);
+    //auto broken_image = Image("./none_existent.png");
+    auto broken = make_shared<ImageTexture>();
+    auto ground_material = make_shared<Lambertian>(broken);
     scene.add(make_shared<Sphere>(point3(0,-1000,0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) {

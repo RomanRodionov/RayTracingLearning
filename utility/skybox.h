@@ -2,29 +2,29 @@
 #define SKYBOX_H
 
 #include "common.h"
-#include "image_texture.h"
+#include "my_image_texture.h"
 #include "texture.h"
 
 class SkyBox
 {
     public:
-        shared_ptr<ImageTexture> left;
-        shared_ptr<ImageTexture> front;
-        shared_ptr<ImageTexture> right;
-        shared_ptr<ImageTexture> back;
-        shared_ptr<ImageTexture> top;
-        shared_ptr<ImageTexture> bottom;
+        shared_ptr<MyImageTexture> left;
+        shared_ptr<MyImageTexture> front;
+        shared_ptr<MyImageTexture> right;
+        shared_ptr<MyImageTexture> back;
+        shared_ptr<MyImageTexture> top;
+        shared_ptr<MyImageTexture> bottom;
         shared_ptr<Texture> texture;
         bool cubemap;
         std::pair<double, double> size;
         int width, height;
         SkyBox() {}
-        SkyBox(const shared_ptr<ImageTexture>& tex) : cubemap(true)
+        SkyBox(const shared_ptr<MyImageTexture>& tex) : cubemap(true)
         {
             load_texture(tex);
         }
         SkyBox(const shared_ptr<Texture>& tex) : texture(tex), cubemap(false) {}
-        void load_texture(const shared_ptr<ImageTexture>& tex)
+        void load_texture(const shared_ptr<MyImageTexture>& tex)
         {
             std::pair<double, double> size = {1.0 / 4.0, 1.0 / 3.0};
             left = tex->crop({0, size.second}, size);

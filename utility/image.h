@@ -9,6 +9,8 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <iostream>
+#include <filesystem>
 
 #include "common.h"
 
@@ -20,49 +22,117 @@ inline double linear_to_gamma(double lin_comp)
 class Image
 {
     private:
-        int width, height;
-        std::vector<uchar> data;
+        int w, h;
+        int ch;
+        int row_len;
+        bool stbi;
+        uchar* data;
     public:
-        Image(int h, int w) : height(h), width(w)
+        Image() : w(0), h(0), ch(0), stbi(false), data(nullptr) {}
+        Image(int _h, int _w, int _ch = CHANNELS) : row_len(w * _ch), stbi(false)
         {
-            data = std::vector<uchar>(width * height * CHANNELS);
+            data = nullptr;
+            create(_h, _w, _ch);
         }
-        Image(std::string filename)
+        Image(const std::string filename)
         {
             load_png(filename);
         }
-        int get_width() const {return width;}
-        int get_height() const {return height;}
-        int load_png(std::string filename)
+        ~Image()
         {
-            unsigned char *img = stbi_load(filename.c_str(), &width, &height, nullptr, CHANNELS);
-            if (img == NULL) {return 1;}
-            data = std::vector<uchar>(img, img + width * height * CHANNELS);
-            return 0;
+            clear();
+        }
+        int width() const {return w;}
+        int height() const {return h;}
+        int channels() const {return ch;}
+        bool load_png(std::string filename, int _ch = CHANNELS)
+        {
+            ch = _ch;
+            if (data != nullptr)
+            {
+                clear();
+            }
+            if (std::filesystem::exists(filename))
+                data = stbi_load(filename.c_str(), &w, &h, nullptr, ch);
+            if (data == nullptr)
+            {
+                w = h = row_len = 0;
+                stbi = false;
+                std::cerr << "Failed to read " << filename << std::endl;
+                return false;
+            }
+            stbi = true;
+            row_len = w * ch;
+            return true;
+        }
+        void create(int _h, int _w, int _ch = CHANNELS)
+        {
+            if (data != nullptr) 
+                clear();
+            h = _h;
+            w = _w;
+            ch = _ch;
+            data = new uchar[h * w * ch];
+        }
+        void clear()
+        {
+            if (data != nullptr)
+            {
+                if (stbi) 
+                    STBI_FREE(data);
+                else 
+                    delete data;
+            }
+            stbi = false;
         }
         int save_to_png(std::string filename) const
         {
-            return stbi_write_png(filename.c_str(), width, height, CHANNELS, data.data(), width * CHANNELS);
+            if (data != nullptr)
+            {
+                return stbi_write_png(filename.c_str(), w, h, ch, data, row_len);
+            }
+            std::cerr << "Nothing to save" << std::endl;
+            return 1;
         }
         void draw_pixel(int row, int col, color color)
         {
-            assert(row >= 0 && row < height);
-            assert(col >= 0 && col < width);
-            double r = linear_to_gamma(color[0]);
-            double g = linear_to_gamma(color[1]);
-            double b = linear_to_gamma(color[2]);
-            static const Interval intensity(0.000, 0.999);
-            data[(width * row + col) * CHANNELS]     = static_cast<uchar> (MAX_COLOR * intensity.clamp(r));
-            data[(width * row + col) * CHANNELS + 1] = static_cast<uchar> (MAX_COLOR * intensity.clamp(g));
-            data[(width * row + col) * CHANNELS + 2] = static_cast<uchar> (MAX_COLOR * intensity.clamp(b));
+            if (data != nullptr)
+            {
+                assert(row >= 0 && row < h);
+                assert(col >= 0 && col < w);
+                double r = linear_to_gamma(color[0]);
+                double g = linear_to_gamma(color[1]);
+                double b = linear_to_gamma(color[2]);
+                static const Interval intensity(0.000, 0.999);
+                data[(w * row + col) * ch]     = static_cast<uchar> (MAX_COLOR * intensity.clamp(r));
+                data[(w * row + col) * ch + 1] = static_cast<uchar> (MAX_COLOR * intensity.clamp(g));
+                data[(w * row + col) * ch + 2] = static_cast<uchar> (MAX_COLOR * intensity.clamp(b));
+            }
+        }
+        uchar* pixel_data(int row, int col) const
+        {
+            assert(row >= 0 && row < h && col >= 0 && col < w);
+            static uchar default_color[CHANNELS] = ARRAY_FROM_COLOR(PURPLE_PIZZA);
+            if (data == NULL)
+            {
+                return default_color;
+            }
+            return &data[(w * row + col) * CHANNELS];
         }
         inline color get_color(int row, int col) const
         {
-            assert(row >= 0 && row < height);
-            assert(col >= 0 && col < width);
-            return color((double) data[(width * row + col) * CHANNELS] / MAX_COLOR,
-                         (double) data[(width * row + col) * CHANNELS + 1] / MAX_COLOR,
-                         (double) data[(width * row + col) * CHANNELS + 2] / MAX_COLOR);
+            assert(row >= 0 && row < h && col >= 0 && col < w);
+            static uchar default_color[CHANNELS] = ARRAY_FROM_COLOR(PURPLE_PIZZA);
+            if (data == NULL)
+            {
+                double color_scale = 1.0 / 255.0;
+                return color(color_scale * default_color[0],
+                             color_scale * default_color[1],
+                             color_scale * default_color[2]);
+            }
+            return color((double) data[(w * row + col) * ch] / MAX_COLOR,
+                         (double) data[(w * row + col) * ch + 1] / MAX_COLOR,
+                         (double) data[(w * row + col) * ch + 2] / MAX_COLOR);
         }
 };
 
