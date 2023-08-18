@@ -4,6 +4,8 @@
 #include "common.h"
 #include "ray.h"
 
+#define DELTA 0.0001
+
 class aabb
 {
     public:
@@ -25,6 +27,15 @@ class aabb
             z = Interval(bbox1.z, bbox2.z);
         }
 
+        aabb pad()
+        {
+            double delta = DELTA;
+            Interval new_x = (x.size() >= delta) ? x : x.expand(delta);
+            Interval new_y = (y.size() >= delta) ? y : y.expand(delta);
+            Interval new_z = (z.size() >= delta) ? z : z.expand(delta); 
+
+            return aabb(new_x, new_y, new_z);
+        }
         const Interval& axis(int n) const
         {
             switch (n)

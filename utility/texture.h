@@ -104,8 +104,8 @@ class ImageTexture : public Texture
                 v = 1.0 - Interval(0, 1).clamp(v);
             }
 
-            int col = static_cast<int>(u * img.width());
-            int row = static_cast<int>(v * img.height());
+            int col = static_cast<int>(u * (img.width() - 1));
+            int row = static_cast<int>(v * (img.height() - 1));
             uchar* pixel = img.pixel_data(row, col);
 
             double color_scale = 1.0 / 255.0;

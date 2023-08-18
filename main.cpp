@@ -63,20 +63,22 @@ void random_spheres(shared_ptr<Image>& image)
     camera->render(image, scene_data);
 }
 
-void two_spheres(shared_ptr<Image>& image)
+void marble_sphere(shared_ptr<Image>& image)
 {
-    auto sky_box = make_shared<SkyBox>(RED * 0.1, BLUE * 0.002);
+    auto sky_box = make_shared<SkyBox>(WHITE * 0.1, WHITE * 0.2);
     ObjectsList scene = ObjectsList();
 
+    auto ground_texture = make_shared<ImageTexture>("./data/ground.jpg", 4.0);
+    auto ground = make_shared<Lambertian>(ground_texture);
+
     auto marble_texture = make_shared<MarbleTexture>(1.0 / 4.0);
-    auto marble = make_shared<Lambertian>(marble_texture);
+    auto marble = make_shared<Metal>(marble_texture, 0.5);
 
     scene.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, marble));
-    scene.add(make_shared<Sphere>(point3(0,-1000,0), 1000, marble));
+    scene.add(make_shared<Plane>(point3(0,0,0), vec3(1, 0, 0), vec3(0, 0, 1), ground));
 
     auto difflight = make_shared<DiffuseLight>(WHITE * 4);
     scene.add(make_shared<Sphere>(point3(1.2, 0.2, -0.5), 0.1, difflight));
-
 
     shared_ptr<ObjectsList> world = make_shared<ObjectsList>(ObjectsList(make_shared<bvh_node>(scene)));
 
@@ -88,13 +90,42 @@ void two_spheres(shared_ptr<Image>& image)
     camera->render(image, scene_data);
 }
 
+void quads(shared_ptr<Image>& image)
+{
+    ObjectsList world = ObjectsList();
+
+    auto left_red     = make_shared<Lambertian>(color(1.0, 0.2, 0.2));
+    auto back_green   = make_shared<Lambertian>(color(0.2, 1.0, 0.2));
+    auto right_blue   = make_shared<Lambertian>(color(0.2, 0.2, 1.0));
+    auto upper_orange = make_shared<Lambertian>(color(1.0, 0.5, 0.0));
+    auto lower_teal   = make_shared<Lambertian>(color(0.2, 0.8, 0.8));
+
+    // Quads
+    world.add(make_shared<Quad>(point3(-3,-2, 5), vec3(0, 0,-4), vec3(0, 4, 0), left_red));
+    world.add(make_shared<Quad>(point3(-2,-2, 0), vec3(4, 0, 0), vec3(0, 4, 0), back_green));
+    world.add(make_shared<Quad>(point3( 3,-2, 1), vec3(0, 0, 4), vec3(0, 4, 0), right_blue));
+    world.add(make_shared<Quad>(point3(-2, 3, 1), vec3(4, 0, 0), vec3(0, 0, 4), upper_orange));
+    world.add(make_shared<Quad>(point3(-2,-3, 5), vec3(4, 0, 0), vec3(0, 0,-4), lower_teal));
+
+    auto difflight = make_shared<DiffuseLight>(WHITE * 4);
+    world.add(make_shared<Sphere>(point3(0, 0, 2), 0.5, difflight));
+
+    shared_ptr<ObjectsList> bvh = make_shared<ObjectsList>(ObjectsList(make_shared<bvh_node>(world)));
+
+    CameraSettings settings(point3(2, 0, 9), point3(0, 0, 0), 120);
+    shared_ptr<Camera> camera = make_shared<Camera>(settings);
+    SceneData scene_data = {bvh, nullptr};
+
+    camera->render(image, scene_data);
+}
+
 int main(int, char**){
     std::srand(0);
 
     std::string filename = OUTPUT_FILE;
     shared_ptr<Image> image = make_shared<Image>(IMG_HEIGHT, IMG_WIDTH);
 
-    two_spheres(image);
+    marble_sphere(image);
 
     image->save_to_png(filename);
     std::cout << std::endl << "File " << filename << " has been saved" << std::endl;;

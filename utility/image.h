@@ -103,8 +103,7 @@ class Image
         {
             if (data != nullptr)
             {
-                assert(row >= 0 && row < h);
-                assert(col >= 0 && col < w);
+                assert(row >= 0 && row < h && col >= 0 && col < w);
                 double r = linear_to_gamma(color[0]);
                 double g = linear_to_gamma(color[1]);
                 double b = linear_to_gamma(color[2]);
