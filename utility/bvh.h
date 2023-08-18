@@ -35,7 +35,7 @@ class bvh_node : public Object
         {
             std::vector<shared_ptr<Object>> objects = src_objects;
 
-            int axis = random_int(0, 2);
+            int axis = rand_int(0, 2);
             auto comparator = (axis == 0) ? box_x_compare
                             : (axis == 1) ? box_y_compare
                                           : box_z_compare;
@@ -45,18 +45,21 @@ class bvh_node : public Object
             if (object_span == 1)
             {
                 left = right = objects[start];
-            } else if (object_span == 2)
+            } 
+            else if (object_span == 2)
             {
                 if (comparator(objects[start], objects[start + 1]))
                 {
                     left = objects[start];
                     right = objects[start + 1];
-                } else
+                } 
+                else
                 {
                     left = objects[start + 1];
                     right = objects[start];
                 }
-            } else
+            } 
+            else
             {
                 std::sort(objects.begin() + start, objects.begin() + end, comparator);
                 int mid = start + object_span / 2;

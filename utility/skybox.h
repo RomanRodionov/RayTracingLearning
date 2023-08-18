@@ -4,6 +4,7 @@
 #include "common.h"
 #include "my_image_texture.h"
 #include "texture.h"
+#include "objects/sphere.h"
 
 class SkyBox
 {
@@ -24,6 +25,7 @@ class SkyBox
             load_texture(tex);
         }
         SkyBox(const shared_ptr<Texture>& tex) : texture(tex), cubemap(false) {}
+        SkyBox(const color& color1, const color& color2) : texture(make_shared<GradientTexture>(color1, color2)), cubemap(false) {}
         void load_texture(const shared_ptr<MyImageTexture>& tex)
         {
             std::pair<double, double> size = {1.0 / 4.0, 1.0 / 3.0};
@@ -38,12 +40,12 @@ class SkyBox
         }
         color get_color(const vec3& look_at_original)
         {
+            vec3 look_at = unit_vector(look_at_original);
             if (cubemap)
             {
                 const double u_error = 1.0 - 2.0 / width;
                 const double v_error = 1.0 - 2.0 / height;
                 const double edge = 1 / sqrt(3);
-                vec3 look_at = unit_vector(look_at_original);
                 if (fabs(look_at.y()) > edge)
                 {
                     look_at *= edge / fabs(look_at.y());
@@ -92,7 +94,9 @@ class SkyBox
                 v = 0.5 - z / y / 2 * v_error;
                 return bottom->get_color(u, v);
             }
-            return texture->value(0.0, 0.0, look_at_original);
+            double u, v;
+            Sphere::get_sphere_uv(look_at, u, v);
+            return texture->value(u, v, look_at);
         }
 };
 

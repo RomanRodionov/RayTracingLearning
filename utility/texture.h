@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "image.h"
+#include "perlin.h"
 
 class Texture 
 {
@@ -76,12 +77,13 @@ class ImageTexture : public Texture
 {
     private:
         Image img;
+        double inv_scale;
         bool cycle;
     public:
-        ImageTexture() : img(Image()), cycle(true) {}
-        ImageTexture(const std::string filename, bool _cycle = true) : img(filename), cycle(_cycle) {}
-        ImageTexture(const Image& _img, bool _cycle = true) : img(_img), cycle(_cycle) {}
-        ImageTexture(shared_ptr<Image> _img, bool _cycle = true) : img(*_img), cycle(_cycle) {}
+        ImageTexture() : img(Image()), inv_scale(1.0), cycle(true) {}
+        ImageTexture(const std::string filename, double _scale = 1.0, bool _cycle = true) : img(filename), inv_scale(1.0 / _scale), cycle(_cycle) {}
+        ImageTexture(const Image& _img, double _scale = 1.0, bool _cycle = true) : img(_img), inv_scale(1.0 / _scale), cycle(_cycle) {}
+        ImageTexture(shared_ptr<Image> _img, double _scale = 1.0, bool _cycle = true) : img(*_img), inv_scale(1.0 / _scale), cycle(_cycle) {}
 
         color value(double u, double v, const point3& p) const override
         {
@@ -89,11 +91,12 @@ class ImageTexture : public Texture
             {
                 return default_texture.value(u, v, p);
             }
+            u *= inv_scale;
+            v *= inv_scale;
             if (cycle)
             {
-                double temp;
-                u = modf(u, &temp);
-                v = 1.0 - modf(v, &temp);
+                u -= floor(u);
+                v = 1 - (v - floor(v));
             }
             else
             {
@@ -108,7 +111,21 @@ class ImageTexture : public Texture
             double color_scale = 1.0 / 255.0;
             return color(color_scale * pixel[0], color_scale * pixel[1], color_scale * pixel[2]);
         }
-        
+};
+
+class MarbleTexture : public Texture
+{
+    private:
+        Perlin noise;
+        double inv_scale;
+    public:
+        MarbleTexture(double scale = 1.0/16.0) : inv_scale(1.0 / scale) {}
+
+        color value(double u, double v, const point3& p) const override
+        {
+            point3 scaled_p = p * inv_scale;
+            return WHITE * 0.5 * (1 + sin(scaled_p.z() + 10 * noise.turb(scaled_p)));
+        }
 };
 
 #endif
