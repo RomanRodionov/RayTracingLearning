@@ -15,6 +15,7 @@
 #include "utility/materials/lambertian.h"
 #include "utility/materials/metal.h"
 #include "utility/materials/dielectric.h"
+#include "utility/materials/light.h"
 #include "utility/camera.h"
 #include "utility/my_image_texture.h"
 #include "utility/skybox.h"

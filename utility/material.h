@@ -12,8 +12,14 @@ class Material
             const Ray& fall_ray, 
             const hit_record& hit, 
             color& attenuation,
-            Ray& scattered
-        ) const = 0;
+            Ray& scattered) const = 0;
+        virtual color emitted(
+            double u, 
+            double v, 
+            const point3& p) const
+        {
+            return BLACK;
+        }
 };
 
 #endif

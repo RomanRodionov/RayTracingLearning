@@ -62,6 +62,7 @@ class Camera
         vec3 vertical;
         vec3 w, u, v;
         double lens_radius;
+        shared_ptr<Texture> background;
     public:
         Camera(point3 look_from,
                point3 look_at,
@@ -86,6 +87,8 @@ class Camera
             ll_corner = origin - horizontal / 2 - vertical / 2 - w * focus_dist;
 
             lens_radius = aperture / 2;
+
+            background = make_shared<SolidColor>(BLACK);
         }
         Camera(point3 look_from = LOOK_FROM,
                point3 look_at = LOOK_AT,
@@ -110,7 +113,7 @@ class Camera
             return Ray(shifted_origin, ray_dir, ray_time);
         }
     private:
-        color ray_color(const Ray& ray, shared_ptr<Object> scene, int depth, shared_ptr<SkyBox> skybox)
+        color ray_color(const Ray& ray, shared_ptr<Object> scene, int depth, shared_ptr<SkyBox> skybox = nullptr)
         {
             hit_record hit;
 
@@ -119,17 +122,28 @@ class Camera
                 return color(0.0, 0.0, 0.0);
             }
 
-            if (scene->hit(ray, Interval(EPS, INF), hit))
+            if (!scene->hit(ray, Interval(EPS, INF), hit))
             {
-                Ray scattered;
-                color attenuation;
-                if (hit.material->scatter(ray, hit, attenuation, scattered))
+                vec3 dir = unit_vector(ray.direction());
+                if (skybox != nullptr)
+                    return skybox->get_color(dir);
+                else
                 {
-                    return attenuation * ray_color(scattered, scene, depth - 1, skybox);
+                    double u, v;
+                    Sphere::get_sphere_uv(dir, u, v);
+                    return background->value(u, v, dir);
                 }
-                return color(0, 0, 0);
             }
-            return skybox->get_color(ray.direction());
+            Ray scattered;
+            color attenuation;
+            color emitted_light = hit.material->emitted(hit.u, hit.v, hit.p);
+
+            if (!hit.material->scatter(ray, hit, attenuation, scattered))
+                return emitted_light;
+
+            color scattered_light = ray_color(scattered, scene, depth - 1, skybox) * attenuation;
+            
+            return emitted_light + scattered_light;
         }
         color compute_pixel(int i, int j,
                     shared_ptr<Image> image,

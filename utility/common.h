@@ -20,7 +20,7 @@ const double PI = 3.1415926535897932385;
 #define IMG_WIDTH (640)
 #define IMG_HEIGHT (360)
 #define ASPECT_RATIO ((double) IMG_WIDTH / (double) IMG_HEIGHT)
-#define SAMPLES_PER_PIXEL 50
+#define SAMPLES_PER_PIXEL 400
 #define MAX_DEPTH 50
 #define FOV 40
 #define LOOK_FROM point3(13,2,3)

@@ -65,17 +65,22 @@ void random_spheres(shared_ptr<Image>& image)
 
 void two_spheres(shared_ptr<Image>& image)
 {
-    auto sky_box = make_shared<SkyBox>(SKY, WHITE);
+    auto sky_box = make_shared<SkyBox>(RED * 0.1, BLUE * 0.002);
     ObjectsList scene = ObjectsList();
 
     auto marble_texture = make_shared<MarbleTexture>(1.0 / 4.0);
-    auto material1 = make_shared<Lambertian>(marble_texture);
-    scene.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
-    scene.add(make_shared<Sphere>(point3(0,-1000,0), 1000, material1));
+    auto marble = make_shared<Lambertian>(marble_texture);
+
+    scene.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, marble));
+    scene.add(make_shared<Sphere>(point3(0,-1000,0), 1000, marble));
+
+    auto difflight = make_shared<DiffuseLight>(WHITE * 4);
+    scene.add(make_shared<Sphere>(point3(1.2, 0.2, -0.5), 0.1, difflight));
+
 
     shared_ptr<ObjectsList> world = make_shared<ObjectsList>(ObjectsList(make_shared<bvh_node>(scene)));
 
-    CameraSettings settings(point3(3.0, 0.5, -3.0), point3(0, 0, 0), 60);
+    CameraSettings settings(point3(1.0, 1.0, -3.0), point3(0, 0, 0), 90);
     settings.aperture = 0.0;
     shared_ptr<Camera> camera = make_shared<Camera>(settings);
     SceneData scene_data = {world, sky_box};
