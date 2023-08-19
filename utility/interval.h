@@ -42,4 +42,14 @@ class Interval
 const static Interval empty(+INF, -INF);
 const static Interval universe(-INF, +INF);
 
+Interval operator+(const Interval& ival, double offset)
+{
+    return Interval(ival.min + offset, ival.max + offset);
+}
+
+Interval operator+(double offset, const Interval& ival)
+{
+    return ival + offset;
+}
+
 #endif

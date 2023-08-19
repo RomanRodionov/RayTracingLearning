@@ -18,5 +18,6 @@ const color SAND = color(0.76, 0.7, 0.5);
 const color SKY = color(0.53, 0.81, 0.92);
 const color LIGHT_AQUA = color(0.67, 0.93, 0.9);
 const color PURPLE_PIZZA = color(1.0, 0.0, 0.8);
+const color PINK = color(1.0, 0.75, 0.79);
 
 #endif

@@ -65,24 +65,25 @@ void random_spheres(shared_ptr<Image>& image)
 
 void marble_sphere(shared_ptr<Image>& image)
 {
-    auto sky_box = make_shared<SkyBox>(WHITE * 0.1, WHITE * 0.2);
+    auto sky_box = nullptr;//make_shared<SkyBox>(PINK * 0.6, PINK * 0.4);
     ObjectsList scene = ObjectsList();
 
-    auto ground_texture = make_shared<ImageTexture>("./data/ground.jpg", 4.0);
+    auto ground_texture = make_shared<ImageTexture>("./data/ground.jpg", 8.0);
     auto ground = make_shared<Lambertian>(ground_texture);
 
     auto marble_texture = make_shared<MarbleTexture>(1.0 / 4.0);
-    auto marble = make_shared<Metal>(marble_texture, 0.5);
+    auto marble = make_shared<Metal>(marble_texture, 0.9);
 
-    scene.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, marble));
+    scene.add(make_shared<Sphere>(point3(0, 2, 0), 2.0, marble));
     scene.add(make_shared<Plane>(point3(0,0,0), vec3(1, 0, 0), vec3(0, 0, 1), ground));
 
     auto difflight = make_shared<DiffuseLight>(WHITE * 4);
-    scene.add(make_shared<Sphere>(point3(1.2, 0.2, -0.5), 0.1, difflight));
+    scene.add(make_shared<Quad>(point3(3,1,-2), vec3(2,0,0), vec3(0,2,0), difflight));
+    scene.add(make_shared<Sphere>(point3(0,7,0), 2, difflight));
 
     shared_ptr<ObjectsList> world = make_shared<ObjectsList>(ObjectsList(make_shared<bvh_node>(scene)));
 
-    CameraSettings settings(point3(1.0, 1.0, -3.0), point3(0, 0, 0), 90);
+    CameraSettings settings(point3(26,3,6), point3(0,2,0), 35);
     settings.aperture = 0.0;
     shared_ptr<Camera> camera = make_shared<Camera>(settings);
     SceneData scene_data = {world, sky_box};
@@ -119,13 +120,49 @@ void quads(shared_ptr<Image>& image)
     camera->render(image, scene_data);
 }
 
+void cornell_box(shared_ptr<Image>& image)
+{
+    ObjectsList world = ObjectsList();
+
+    auto red   = make_shared<Lambertian>(color(.65, .05, .05));
+    auto white = make_shared<Lambertian>(color(.73, .73, .73));
+    auto green = make_shared<Lambertian>(color(.12, .45, .15));
+    auto light = make_shared<DiffuseLight>(color(15, 15, 15));
+
+    world.add(make_shared<Quad>(point3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
+    world.add(make_shared<Quad>(point3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
+    world.add(make_shared<Quad>(point3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
+    world.add(make_shared<Quad>(point3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
+    world.add(make_shared<Quad>(point3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
+    world.add(make_shared<Quad>(point3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
+
+    shared_ptr<Object> box1 = box(point3(0,0,0), point3(165,330,165), white);
+    box1 = make_shared<RotateY>(box1, 15);
+    box1 = make_shared<Translate>(box1, vec3(265,0,295));
+    world.add(box1);
+
+    shared_ptr<Object> box2 = box(point3(0,0,0), point3(165,165,165), white);
+    box2 = make_shared<RotateY>(box2, -18);
+    box2 = make_shared<Translate>(box2, vec3(130,0,65));
+    world.add(box2);
+
+    shared_ptr<ObjectsList> bvh = make_shared<ObjectsList>(ObjectsList(make_shared<bvh_node>(world)));
+
+    CameraSettings settings(point3(278, 278, -800), point3(278, 278, 0), 40);
+    settings.aperture = 0;
+    shared_ptr<Camera> camera = make_shared<Camera>(settings);
+    SceneData scene_data = {bvh, nullptr};
+
+    camera->render(image, scene_data);
+}
+
 int main(int, char**){
     std::srand(0);
 
     std::string filename = OUTPUT_FILE;
     shared_ptr<Image> image = make_shared<Image>(IMG_HEIGHT, IMG_WIDTH);
 
-    marble_sphere(image);
+    cornell_box(image);
 
     image->save_to_png(filename);
     std::cout << std::endl << "File " << filename << " has been saved" << std::endl;;
